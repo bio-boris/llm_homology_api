@@ -1,0 +1,120 @@
+from functools import cached_property
+
+import requests
+from cacheout import LRUCache
+from fastapi import HTTPException
+
+
+class UserAuthRoles:
+    def __init__(
+        self, username: str, user_roles: list[str], admin_roles: list[str], token: str
+    ):
+        self.username = username
+        self.user_roles = user_roles
+        self.admin_roles = admin_roles
+        self.token = token
+
+    @cached_property
+    def is_admin(self) -> bool:
+        return any(role in self.admin_roles for role in self.user_roles)
+
+    def is_admin_or_owner(self, owners: list[str]) -> bool:
+        return self.is_admin or self.username in owners
+
+
+class CachedAuthClient:
+    def __init__(
+        self,
+        valid_tokens_cache: LRUCache = None,
+        auth_url: str = None,
+        admin_roles: list[str] = None,
+    ):
+        """
+        Initialize the CachedAuthClient
+        :param valid_tokens_cache: The cache to use for valid tokens
+        :param auth_url: KBases auth service URL
+        :param admin_roles: A list of roles that are considered admin roles
+        """
+        if not valid_tokens_cache:
+            self.valid_tokens = LRUCache(ttl=10)
+        self.valid_tokens = valid_tokens_cache
+        self.auth_url = auth_url
+        self.admin_roles = admin_roles
+
+    def is_authorized(self, token: str) -> bool:
+        """
+        A token is authorized if it is valid
+        :param token:
+        :return: True if the token is valid, False otherwise
+        :raises: HTTPException if the token is invalid or the auth service is down
+        """
+        return bool(self.get_user_auth_roles(token) is not None)
+
+    def is_admin(self, token: str) -> bool:
+        """
+        A token is authorized if is valid and the user has an admin role
+        :return: True if the token is valid, False otherwise
+        :raises: HTTPException if the token is invalid or the auth service is down
+        """
+        return self.get_user_auth_roles(token).is_admin
+
+    def get_user_auth_roles(self, token: str) -> UserAuthRoles:
+        """
+        Get the user auth roles for the given token. If the token is not cached, it will be validated and cached.
+        :param token:  The token to get the user auth roles for
+        :return: The user auth roles for the given token
+        :raises: HTTPException if the token is invalid, expired, or the auth service is down or the auth URL is incorrect
+        """
+        key = token
+        user_auth_roles = self.valid_tokens.get(key=key, default=None)
+        if not user_auth_roles:
+            user_auth_roles = self._validate_token(token)
+            self.valid_tokens.set(key=token, value=user_auth_roles)
+        return user_auth_roles
+
+    def _validate_token(self, token: str) -> UserAuthRoles:
+        """
+        Will either return a UserAuthRoles object or throw an exception because the token is invalid, expired,
+        or the auth service is down or the auth URL is incorrect
+        :param token: The token to validate
+        :return: A UserAuthRoles object representing the user and their auth roles
+        :raises: HTTPException if the token is invalid, expired, or the auth service is down or the auth URL is incorrect
+        """
+        # TODO Try catch validate errors, auth service URL is bad, etc
+        username, roles = self.validate_and_get_username_auth_roles(token)
+        return UserAuthRoles(
+            username=username,
+            user_roles=roles,
+            admin_roles=self.admin_roles,
+            token=token,
+        )
+
+    def validate_and_get_username_auth_roles(self, token: str) -> tuple[str, list[str]]:
+        """
+        This calls out the auth service to validate the token and get the username and auth roles
+        :param token: The token to validate
+        :return: A tuple of the username and auth roles
+        :raises: HTTPException if the token is invalid, expired, or the auth service is down or the auth URL is incorrect
+        """
+        try:
+            response = requests.get(url=self.auth_url, headers={"Authorization": token})
+        except Exception:
+            raise HTTPException(
+                status_code=500, detail="Auth service is down or bad request"
+            )
+        if response.status_code == 200:
+            resonse = response.json()
+            if "customroles" not in response.json():
+                raise HTTPException(
+                    status_code=404,
+                    detail="Auth URL not configured correctly, no custom roles found (use /me)",
+                )
+            return resonse["user"], resonse["customroles"]
+        elif response.status_code == 404:
+            raise HTTPException(
+                status_code=404, detail="Auth URL not configured correctly"
+            )
+        else:
+            raise HTTPException(
+                status_code=response.status_code, detail=response.json()["error"]
+            )
