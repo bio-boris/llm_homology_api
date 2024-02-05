@@ -22,7 +22,7 @@ class SimilarityResponse(BaseModel):
                     "Protein2": {
                         "HomologousProteinC": 0.85,
                         "HomologousProteinD": 0.8,
-                    }
+                    },
                 }
             }
         }
@@ -32,7 +32,9 @@ class ProteinSequenceResponse(BaseModel):
     # The unique identifier of the protein and the protein sequence.
 
     id: str = Field(..., description="The unique identifier of the protein.")
-    embedding_distance: float = Field(..., description="The calculated embedding distance for the protein.")
+    embedding_distance: float = Field(
+        ..., description="The calculated embedding distance for the protein."
+    )
 
     class Config:
         schema_extra = {

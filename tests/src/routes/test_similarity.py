@@ -1,14 +1,14 @@
 # test similarity route
 # test fastapi route
 from fastapi import APIRouter
-
-from llm_homology_api.src.routes.similarity import router as similarity_router
-from llm_homology_api.src.routes.status import router as status_router
-
 from fastapi.testclient import TestClient
 
-from llm_homology_api.src.factory import create_app  # Adjust the import path according to your project structure
-from llm_homology_api.src.config import get_settings
+from config import get_settings
+from factory import (
+    create_app,
+)  # Adjust the import path according to your project structure
+from routes.similarity import router as similarity_router
+from routes.status import router as status_router
 
 
 def test_routers():
@@ -29,9 +29,9 @@ def test_calculate_similarity():
     request_payload = {
         "sequences": [
             {"id": "Protein1", "sequence": "MKT..."},
-            {"id": "Protein2", "sequence": "AGT..."}
+            {"id": "Protein2", "sequence": "AGT..."},
         ],
-        "threshold": 0.5
+        "threshold": 0.5,
     }
 
     # Make a POST request to the endpoint
@@ -50,8 +50,11 @@ def test_calculate_similarity():
 def test_similarity_request_constraints():
     # Test exceeding the maximum number of sequences per request
     request_payload = {
-        "sequences": [{"id": f"Protein{i}", "sequence": "MKT..."} for i in range(settings.MAX_PROTEINS_PER_REQUEST + 1)],
-        "threshold": 0.5
+        "sequences": [
+            {"id": f"Protein{i}", "sequence": "MKT..."}
+            for i in range(settings.MAX_PROTEINS_PER_REQUEST + 1)
+        ],
+        "threshold": 0.5,
     }
 
     response = client.post("/similarity/", json=request_payload)

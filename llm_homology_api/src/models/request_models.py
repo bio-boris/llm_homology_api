@@ -1,6 +1,6 @@
 from pydantic import BaseModel, constr, Field, conlist
 
-from src.config import get_settings
+from config import get_settings
 
 settings = get_settings()
 
@@ -32,5 +32,3 @@ class SimilarityRequest(BaseModel):
         f" {settings.MAX_RESIDUE_HEADER_LENGTH}.",
     )
     threshold: float = Field(..., description="Similarity threshold for LLM search")
-
-

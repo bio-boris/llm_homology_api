@@ -1,0 +1,12 @@
+version: '3'
+services:
+  llm_homology_api:
+    build:
+      context: .
+      args:
+        VCS_REF: ${VCS_REF}
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    env_file:
+      - .docker_compose_env

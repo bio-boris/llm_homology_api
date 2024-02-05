@@ -1,7 +1,7 @@
 # LLM Homology API
 * A fastapi
 
-# Instalattion with a local .venv
+# Install with a local .venv
 ```
 Ensure you poetry has the following
 ```

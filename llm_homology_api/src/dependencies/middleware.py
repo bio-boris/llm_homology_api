@@ -5,8 +5,8 @@ from fastapi import Header, Cookie
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
-from src.clients.CachedAuthClient import CachedAuthClient  # noqa: F401
-from src.config import get_settings
+from clients.CachedAuthClient import CachedAuthClient  # noqa: F401
+from config import get_settings
 
 # Constants
 ALPHANUMERIC_PATTERN = r"^[a-zA-Z0-9]+$"

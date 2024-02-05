@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Header, Cookie
+from fastapi import APIRouter, Request, Header, Cookie
 
 from llm_homology_api.src.config import get_settings
 

@@ -1,1 +1,1 @@
-from .llm_homology_api_settings import get_settings
+from .config import get_settings

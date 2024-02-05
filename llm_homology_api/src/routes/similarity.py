@@ -2,10 +2,10 @@ from collections import defaultdict
 
 from fastapi import APIRouter
 
-#TODO Fix long imports
-from src.config import get_settings
-from src.models.request_models import SimilarityRequest
-from src.models.response_models import SimilarityResponse
+# TODO Fix long imports
+from config import get_settings
+from models.request_models import SimilarityRequest
+from models.response_models import SimilarityResponse
 
 router = APIRouter()
 settings = get_settings()

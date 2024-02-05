@@ -1,0 +1,1 @@
+# All scripts expected to be run from the root of the repository
