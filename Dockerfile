@@ -16,12 +16,11 @@ RUN poetry install --no-root --only main
 COPY ./llm_homology_api/ /app/llm_homology_api/
 COPY ./scripts /app/scripts
 
-# run the app
-ARG VCS_REF
-ARG GIT_COMMIT_HASH
-ENV GIT_COMMIT_HASH=${VCS_REF:-${GIT_COMMIT_HASH:-"NO_GIT_COMMIT_PASSED_IN"}}
-ENV VCS_REF=$GIT_COMMIT_HASH
+ARG VCS_REF=NO_GIT_COMMIT_PROVIDED_DURING_BUILD
+ARG VERSION=NO_POETRY_VERSION_PROVIDED_DURING_BUILD
+ENV VCS_REF=$VCS_REF
+ENV VERSION=$VERSION
+
 
 WORKDIR /app/
-#ENTRYPOINT ["/bin/bash"]
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

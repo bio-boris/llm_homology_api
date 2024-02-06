@@ -7,7 +7,7 @@ router = APIRouter()
 ALPHANUMERIC_PATTERN = r"^[a-zA-Z0-9]*$"
 
 
-@router.get("/whoami/")
+@router.get("/whoami")
 def whoami(
     request: Request,
     authorization: str = Header(
@@ -25,7 +25,9 @@ def whoami(
     )
 
 
-@router.get("/status/")
+
+@router.get("/")
+@router.get("/status")
 def status():
     settings = get_settings()
     return {

@@ -1,0 +1,2 @@
+VCS_REF=$(git rev-parse HEAD) docker-compose up --build -d
+#docker buildx build --platform linux/amd64 -t X/llm:test --push . --build-arg VCS_REF=$(git rev-parse HEAD) --build-arg VERSION=$(poetry version -s)

@@ -5,6 +5,7 @@ services:
       context: .
       args:
         VCS_REF: ${VCS_REF}
+        VERSION: ${VERSION}
       dockerfile: Dockerfile
     ports:
       - "5001:5000"

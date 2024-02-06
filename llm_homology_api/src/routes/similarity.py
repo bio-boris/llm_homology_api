@@ -11,7 +11,7 @@ router = APIRouter()
 settings = get_settings()
 
 
-@router.post("/similarity/", response_model=SimilarityResponse)
+@router.post("/similarity", response_model=SimilarityResponse)
 async def calculate_similarity(request: SimilarityRequest):
     f"""
     Calculates the similarity between given protein sequences and finds homologous sequences in the database.

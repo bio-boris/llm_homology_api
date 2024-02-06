@@ -1,4 +1,3 @@
-export VERSION='testing'
 export AUTH_URL='https://ci.kbase.us/services/auth/api/V2/me'
 export ROOT_PATH=''
 export PYTHONPATH=.:llm_homology_api:llm_homology_api/src

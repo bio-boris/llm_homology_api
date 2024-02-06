@@ -1,5 +1,4 @@
 #!/bin/bash
-export VERSION='testing'
 export AUTH_URL='https://ci.kbase.us/services/auth/api/V2/me'
 # Must be set to '' for /docs endpoint to work locally
 export ROOT_PATH=''
