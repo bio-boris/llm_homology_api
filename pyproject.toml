@@ -6,7 +6,7 @@ authors = ["Boris <bio-boris@github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 fastapi = "^0.109.2"
 uvicorn = {extras = ["standard"], version = "^0.27.0.post1"}
 jinja-cli = "^1.2.2"
