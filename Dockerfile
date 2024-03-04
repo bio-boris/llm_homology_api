@@ -15,6 +15,7 @@ RUN poetry install --no-root --only main
 
 COPY ./llm_homology_api/ /app/llm_homology_api/
 COPY ./scripts /app/scripts
+COPY ./examples/examples  /examples
 
 ARG VCS_REF=NO_GIT_COMMIT_PROVIDED_DURING_BUILD
 ARG VERSION=NO_POETRY_VERSION_PROVIDED_DURING_BUILD
