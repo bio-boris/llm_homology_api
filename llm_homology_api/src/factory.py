@@ -7,9 +7,12 @@ from config.config import LLMHomologyApiSettings
 from routes.similarity import router as similarity_router
 from routes.status import router as whoami_router
 
+from ss_factory import setup_similarity_search
+
 
 def create_app(
-    cached_auth_client=None, valid_tokens_cache=None, admin_roles=None, auth_url=None
+    cached_auth_client=None, valid_tokens_cache=None, admin_roles=None, auth_url=None,
+    ss_dataset_dir = "/examples/data",
 ):
     # with open(os.environ["KB_DEPLOYMENT_CONFIG"], 'rb') as cfgfile:
     #
@@ -65,4 +68,5 @@ def create_app(
         )
 
     app.state.auth_client = cached_auth_client
+    app.state.ss = setup_similarity_search(ss_dataset_dir)
     return app
