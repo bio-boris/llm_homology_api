@@ -20,7 +20,7 @@ pytest = "^8.0.0"
 faiss-gpu = {version = "^1.7.2", platform = "linux"}
 transformers = "4.37.1"
 torch = "^2.2.1"
-protein-search = {git = "git@github.com:braceal/protein-search.git", rev = "main"}
+protein-search = {git = "https://github.com/braceal/protein-search.git", rev = "main"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

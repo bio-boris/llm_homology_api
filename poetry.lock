@@ -1875,7 +1875,7 @@ docs = ["black", "mike", "mkdocs-gen-files", "mkdocs-literate-nav", "mkdocs-mate
 
 [package.source]
 type = "git"
-url = "git@github.com:braceal/protein-search.git"
+url = "https://github.com/braceal/protein-search.git"
 reference = "main"
 resolved_reference = "64af4ba170390e11b8a1b3a0d51fcd3cfd2fadcd"
 
@@ -3728,4 +3728,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "789a7602a17e792ce81e94cfb286bf0822204ff92062fc3405d405facdd44a7b"
+content-hash = "43305bcb52e2a313b29d3a1f3492abd9acb6d6b410cd57dfdbf9376dca3e4327"
