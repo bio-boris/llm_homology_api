@@ -6,7 +6,9 @@ authors = ["Boris <bio-boris@github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
+# Todo, pin this
+"protein-search" = { git = "git@github.com:braceal/protein-search.git" }
 fastapi = "^0.109.2"
 uvicorn = {extras = ["standard"], version = "^0.27.0.post1"}
 jinja-cli = "^1.2.2"
@@ -17,7 +19,6 @@ black = "^24.1.1"
 pydantic = "^2.6.0"
 httpx = "^0.26.0"
 pytest = "^8.0.0"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

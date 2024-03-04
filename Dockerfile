@@ -1,4 +1,4 @@
-FROM python:3.11.7-bookworm
+FROM python:3.9
 RUN mkdir -p /app
 WORKDIR /app
 
