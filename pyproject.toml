@@ -26,6 +26,7 @@ protein-search = {git = "https://github.com/braceal/protein-search.git", rev = "
 pytest = "^8.0.0"
 pytest-cov = "^4.1.0"
 
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
