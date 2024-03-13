@@ -68,8 +68,8 @@ def create_app(
         )
 
     app.state.auth_client = cached_auth_client
-    if os.environ.get("DEBUG", 1) == 1:
-        app.state.ss = None
-    else:
-        app.state.ss = setup_similarity_search(ss_dataset_dir)
+    # if os.environ.get("DEBUG", 1) == 1:
+    #     app.state.ss = None
+    # else:
+    app.state.ss = setup_similarity_search(ss_dataset_dir)
     return app
