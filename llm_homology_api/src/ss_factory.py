@@ -4,7 +4,7 @@ from protein_search.embedders import get_embedder
 from protein_search.search import SimilaritySearch
 
 
-def setup_embeddings(model_name="esm2", pretrained_model_name_or_path="facebook/esm2_t6_8M_UR50D"):
+def setup_embeddings(model_name="esm2", pretrained_model_name_or_path="facebook/esm2_t33_650M_UR50D"):
     """
     Set up the embedder to use for similarity search
     This will get downloaded
