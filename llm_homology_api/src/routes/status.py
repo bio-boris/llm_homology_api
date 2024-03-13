@@ -25,7 +25,6 @@ def whoami(
     )
 
 
-
 @router.get("/")
 @router.get("/status")
 def status():

@@ -1,3 +1,5 @@
+import os
+
 from cacheout import LRUCache
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
@@ -10,8 +12,11 @@ from ss_factory import setup_similarity_search
 
 
 def create_app(
-        cached_auth_client=None, valid_tokens_cache=None, admin_roles=None, auth_url=None,
-        ss_dataset_dir="/models/sprot_esm_650m_faiss",
+    cached_auth_client=None,
+    valid_tokens_cache=None,
+    admin_roles=None,
+    auth_url=None,
+    ss_dataset_dir="/models/sprot_esm_650m_faiss",
 ):
 
     cfg = LLMHomologyApiSettings()
@@ -23,7 +28,6 @@ def create_app(
         description="API for LLM Homology",
         version=cfg.VERSION,
         root_path=root_path,
-
         # exception_handlers={
         #     errors.CollectionError: _handle_app_exception,
         #     RequestValidationError: _handle_fastapi_validation_exception,
@@ -64,5 +68,8 @@ def create_app(
         )
 
     app.state.auth_client = cached_auth_client
-    app.state.ss = setup_similarity_search(ss_dataset_dir)
+    if os.environ.get("DEBUG", 1) == 1:
+        app.state.ss = None
+    else:
+        app.state.ss = setup_similarity_search(ss_dataset_dir)
     return app
