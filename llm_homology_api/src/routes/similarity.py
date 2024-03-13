@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request
 from config import get_settings
 from models.request_models import SimilarityRequest
 from models.response_models import SimilarityResponse
+from protein_search.search import SimilaritySearch
 
 router = APIRouter()
 settings = get_settings()
@@ -56,12 +57,15 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
 
     results, query_embeddings = ss.search(query_sequences, top_k=sr.max_hits)
+    import numpy as np
 
     query_proteins = []
-    for protein, i in enumerate(query_sequences):
+    for i, protein in enumerate(query_sequences):
         print(protein)
-        print(query_embeddings[i])
+        qe = query_embeddings  # type: np.ndarray
+        print(qe[i])
         print(results[i])
+        
 
     #     result = results[i]
     #
