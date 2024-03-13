@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from config import get_settings
 from models.request_models import SimilarityRequest
@@ -32,7 +32,7 @@ def construct_query_protein(ss, query_index, query_embedding, result, threshold)
 
 
 @router.post("/similarity", response_model=SimilarityResponse)
-async def calculate_similarity(request: SimilarityRequest):
+async def calculate_similarity(request: Request, sr: SimilarityRequest):
     f"""
     Calculates the similarity between given protein sequences and finds homologous sequences in the database.
 
@@ -48,12 +48,14 @@ async def calculate_similarity(request: SimilarityRequest):
 
     Please ensure that your request does not exceed these constraints.
     """
-    discard_embeddings = request.discard_embeddings
-    query_sequences = [sequence.sequence for sequence in request.sequences]
-    threshold = request.threshold
+    discard_embeddings = sr.discard_embeddings
+    query_sequences = [sequence.sequence for sequence in sr.sequences]
+    threshold = sr.threshold
 
     ss = request.app.state.ss  # SimilaritySearch instance
-    results, query_embeddings = ss.search(query_sequences, top_k=request.max_hits)
+
+
+    results, query_embeddings = ss.search(query_sequences, top_k=sr.max_hits)
 
     query_proteins = []
     for protein, i in enumerate(query_sequences):
