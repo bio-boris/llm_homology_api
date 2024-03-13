@@ -1,2 +1,3 @@
-VCS_REF=$(git rev-parse HEAD) docker-compose up --build -d
-#docker buildx build --platform linux/amd64 -t X/llm:test --push . --build-arg VCS_REF=$(git rev-parse HEAD) --build-arg VERSION=$(poetry version -s)
+export VCS_REF=$(git rev-parse HEAD)  # Set VCS_REF to the current Git commit hash
+export VERSION=1.0.0  # Set VERSION to your application's current version, adjust as necessary
+docker-compose up --build -d

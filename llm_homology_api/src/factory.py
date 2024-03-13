@@ -6,20 +6,15 @@ from clients.CachedAuthClient import CachedAuthClient
 from config.config import LLMHomologyApiSettings
 from routes.similarity import router as similarity_router
 from routes.status import router as whoami_router
-
 from ss_factory import setup_similarity_search
 
 
 def create_app(
-    cached_auth_client=None, valid_tokens_cache=None, admin_roles=None, auth_url=None,
-    ss_dataset_dir = "/examples/data",
+        cached_auth_client=None, valid_tokens_cache=None, admin_roles=None, auth_url=None,
+        ss_dataset_dir="/models/",
 ):
-    # with open(os.environ["KB_DEPLOYMENT_CONFIG"], 'rb') as cfgfile:
-    #
-    # logging.info("Starting up llm_homology_api with config {}".format(cfg)
 
     cfg = LLMHomologyApiSettings()
-
     # Required to be set to "" to get docs working for local development
     root_path = cfg.ROOT_PATH if cfg.ROOT_PATH != "" else None
 
@@ -28,6 +23,7 @@ def create_app(
         description="API for LLM Homology",
         version=cfg.VERSION,
         root_path=root_path,
+
         # exception_handlers={
         #     errors.CollectionError: _handle_app_exception,
         #     RequestValidationError: _handle_fastapi_validation_exception,

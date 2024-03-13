@@ -36,7 +36,7 @@ def setup_embeddings(model_name="esm2", pretrained_model_name_or_path="facebook/
     )
 
 
-def setup_similarity_search(ss_dataset_dir="examples/examples/cath/cath_esm_8m_faiss"):
+def setup_similarity_search(ss_dataset_dir):
     embedder = setup_embeddings()
     return SimilaritySearch(dataset_dir=Path(ss_dataset_dir), embedder=embedder)
 
