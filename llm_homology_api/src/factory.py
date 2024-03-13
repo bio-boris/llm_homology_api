@@ -11,7 +11,7 @@ from ss_factory import setup_similarity_search
 
 def create_app(
         cached_auth_client=None, valid_tokens_cache=None, admin_roles=None, auth_url=None,
-        ss_dataset_dir="/models/",
+        ss_dataset_dir="/models/sprot_esm_650m_faissllm_homology_api/src/factory.py",
 ):
 
     cfg = LLMHomologyApiSettings()
