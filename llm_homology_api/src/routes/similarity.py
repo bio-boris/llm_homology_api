@@ -2,8 +2,7 @@ from fastapi import APIRouter, Request
 
 from config import get_settings
 from models.request_models import SimilarityRequest
-from models.response_models import SimilarityResponse
-from protein_search.search import SimilaritySearch
+from models.response_models import SimilarityResponse, QueryProtein , HitDetail
 
 router = APIRouter()
 settings = get_settings()
@@ -55,17 +54,27 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
     ss = request.app.state.ss  # SimilaritySearch instance
 
-
     results, query_embeddings = ss.search(query_sequences, top_k=sr.max_hits)
-    import numpy as np
 
-    query_proteins = []
+    proteins = []
     for i, protein in enumerate(query_sequences):
-        print(protein)
-        qe = query_embeddings  # type: np.ndarray
-        print(qe[i])
-        print(results[i])
-        
+        putative_hits = results[i]
+        pruned_hits = []
+        for score, ind in zip(putative_hits.total_scores, putative_hits.total_indices):
+            if score > threshold:
+                seq_id = ss.get_sequence_tags(ind)
+                embedding = ss.get_sequence_embeddings(ind)
+                embedding_list = [float(i) for i in embedding[0].tolist()]
+                pruned_hits.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding_list))
+        qp = QueryProtein(
+            QueryId=protein.id,
+            Embedding=query_embeddings[i] if not discard_embeddings else [],
+            total_hits=len(putative_hits),
+            Hits=pruned_hits,
+        )
+        proteins.append(qp)
+
+    return SimilarityResponse(proteins=proteins)
 
     #     result = results[i]
     #
@@ -90,5 +99,4 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
     #
     # # for query_index, (query_embedding, result) in enumerate(zip(query_embeddings, results)):
 
-    sr = SimilarityResponse(proteins=query_proteins)
-    return sr
+    # return sr
