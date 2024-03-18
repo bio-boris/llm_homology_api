@@ -75,7 +75,7 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
         pruned_hits.append(pruned_result)
 
     proteins = []
-    for i, protein in enumerate(query_sequences):
+    for i, protein in enumerate(sr.sequences):
         qp = QueryProtein(
             QueryId=protein.id,
             Embedding=query_embeddings[i] if not discard_embeddings else [],
