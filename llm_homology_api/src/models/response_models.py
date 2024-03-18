@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
+
 class HitDetail(BaseModel):
     HitID: str = Field(
         ..., description="The unique identifier of the homologous sequence."
@@ -9,26 +10,31 @@ class HitDetail(BaseModel):
         ..., description="The similarity score of the homologous sequence."
     )
     Embedding: Optional[List[float]] = Field(
-        None, description="The embedding vector associated with the homologous sequence, included based on a flag."
+        None,
+        description="The embedding vector associated with the homologous sequence, included based on a flag.",
     )
+
 
 class QueryProtein(BaseModel):
     QueryId: str = Field(..., description="The identifier of the query protein.")
     Embedding: Optional[List[float]] = Field(
-        None, description="The embedding vector associated with the query protein, included based on a flag."
+        None,
+        description="The embedding vector associated with the query protein, included based on a flag.",
     )
     total_hits: int = Field(
-        ..., description="The total number of homologous sequences found before trimming based on total hits and threshold."
+        ...,
+        description="The total number of homologous sequences found before trimming based on total hits and threshold.",
     )
     Hits: List[HitDetail] = Field(
         default_factory=list,
-        description="A list of homologous sequences with their respective similarity scores and optional embeddings. Can be empty if none meet the score threshold."
+        description="A list of homologous sequences with their respective similarity scores and optional embeddings. Can be empty if none meet the score threshold.",
     )
 
 
 class SimilarityResponse(BaseModel):
     proteins: List[QueryProtein] = Field(
-        ..., description="A list of query proteins, each containing optional embedding vectors for the query protein, the total number of hits, and their homologous sequences information. The Hits list for each query protein could be empty."
+        ...,
+        description="A list of query proteins, each containing optional embedding vectors for the query protein, the total number of hits, and their homologous sequences information. The Hits list for each query protein could be empty.",
     )
 
     class Config:
