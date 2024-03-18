@@ -33,7 +33,7 @@ def setup_embeddings(
             # Compile the model for faster inference
             # Note: This can actually slow down the inference
             # if the number of queries is small
-            "compile_model": False,
+            "compile_model": True,
         },
     )
 

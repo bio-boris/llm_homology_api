@@ -7,24 +7,18 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.109.2"
-uvicorn = {extras = ["standard"], version = "^0.27.0.post1"}
-jinja-cli = "^1.2.2"
+fastapi = "^0.110.0"
+uvicorn = { extras = ["standard"], version = "^0.28.0" }
 pydantic-settings = "^2.1.0"
 requests = "^2.31.0"
 cacheout = "^0.16.0"
-black = "^24.1.1"
-pydantic = "^2.6.0"
-httpx = "^0.26.0"
-pytest = "^8.0.0"
-faiss-gpu = {version = "^1.7.2", platform = "linux"}
-transformers = "4.37.1"
-torch = "^2.2.1"
-protein-search = {git = "https://github.com/braceal/protein-search.git", rev = "main"}
+faiss-gpu = { version = "^1.7.2", platform = "linux" }
+protein-search = { git = "https://github.com/braceal/protein-search.git", rev = "main" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 pytest-cov = "^4.1.0"
+black = "^24.1.1"
 
 
 [build-system]
