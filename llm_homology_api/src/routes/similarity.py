@@ -62,16 +62,13 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
     for score, ind in zip(search_results.total_scores, search_results.total_indices):
         pruned_result = []
-
-        print(f"Comparing score {score} and {threshold}")
-        # Get the sequence tags found by the search
         seq_id = ss.get_sequence_tags(ind)
         embedding = []
         if not discard_embeddings:
             embedding = ss.get_sequence_embeddings(ind)
             # Convert to python list for REST API
-            embedding = [float(i) for i in embedding[0].tolist()]
-        pruned_result.append(HitDetail(HitID=seq_id[0], Score=score[0], Embedding=embedding))
+            embedding = [float(i) for i in embedding[ind].tolist()]
+        pruned_result.append(HitDetail(HitID=seq_id[ind], Score=score[ind], Embedding=embedding))
         pruned_hits.append(pruned_result)
 
     proteins = []
@@ -110,3 +107,7 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
     # # for query_index, (query_embedding, result) in enumerate(zip(query_embeddings, results)):
 
     # return sr
+
+#
+# scores: [0.9999960660934448, 0.9999607801437378, 0.9981087446212769, 0.9968844056129456, 0.9927204847335815], indices: [467483, 322842, 322841, 322840, 467500], tags: ['Q5HAN0', 'Q5FFY2', 'Q2GHB1', 'Q3YRG6', 'Q0BLD5'], embeddings: (5, 1280)
+# scores: [0.9999743700027466, 0.9885836243629456, 0.9855018854141235, 0.9789844751358032, 0.9772171974182129], indices: [467484, 436849, 142681, 520408, 467490], tags: ['Q5AYI7', 'P54967', 'O59778', 'Q11S94', 'A5FLT1'], embeddings: (5, 1280)
