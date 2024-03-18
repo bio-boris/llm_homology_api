@@ -13,7 +13,7 @@
         - .docker_compose_env
       environment:
         - PYTHONPATH=.:llm_homology_api:llm_homology_api/src
-      entrypoint: exec poetry run uvicorn --host 0.0.0.0 --port 5000 --factory llm_homology_api.src.factory:create_app --reload
+      entrypoint: poetry run uvicorn --host 0.0.0.0 --port 5000 --factory llm_homology_api.src.factory:create_app --reload
 
       volumes:
         - /scratch/sprot/sprot_esm_650m_faiss:/models/sprot_esm_650m_faiss

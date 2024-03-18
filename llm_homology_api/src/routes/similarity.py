@@ -1,10 +1,8 @@
-from pprint import pprint
-
 from fastapi import APIRouter, Request
 
 from config import get_settings
 from models.request_models import SimilarityRequest
-from models.response_models import SimilarityResponse, QueryProtein , HitDetail
+from models.response_models import SimilarityResponse, QueryProtein, HitDetail
 
 router = APIRouter()
 settings = get_settings()
@@ -67,31 +65,26 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
     #                                     [301217, 301220, 127059, 281436, 214578, 214579, 127042, 127046, 214572, 281423]])
 
     pruned_hits = []
-    total_hits = []
-    for result in search_results:
+
+    for score, ind in zip(search_results.total_scores, search_results.total_indices):
         pruned_result = []
-        for score, ind in zip(search_results.total_scores, search_results.total_indices):
-            total_hits.append(len(ind))
-            if score > threshold:
-                # Get the sequence tags found by the search
-                seq_id = ss.get_sequence_tags(ind)
-
-                embedding = []
-                if not discard_embeddings:
-                    embedding = ss.get_sequence_embeddings(ind)
-                    # Convert to python list for REST API
-                    embedding = [float(i) for i in embedding[0].tolist()]
-                pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
-
+        if score > threshold:
+            # Get the sequence tags found by the search
+            seq_id = ss.get_sequence_tags(ind)
+            embedding = []
+            if not discard_embeddings:
+                embedding = ss.get_sequence_embeddings(ind)
+                # Convert to python list for REST API
+                embedding = [float(i) for i in embedding[0].tolist()]
+            pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
         pruned_hits.append(pruned_result)
 
     proteins = []
     for i, protein in enumerate(query_sequences):
-
         qp = QueryProtein(
             QueryId=protein.id,
             Embedding=query_embeddings[i] if not discard_embeddings else [],
-            total_hits=total_hits[i],
+            total_hits=1,
             Hits=pruned_hits[i],
         )
         proteins.append(qp)
