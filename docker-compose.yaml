@@ -11,6 +11,10 @@
         - "5001:5000"
       env_file:
         - .docker_compose_env
+      environment:
+        - PYTHONPATH=.:llm_homology_api:llm_homology_api/src
+      entrypoint: exec poetry run uvicorn --host 0.0.0.0 --port 5000 --factory llm_homology_api.src.factory:create_app --reload
+
       volumes:
         - /scratch/sprot/sprot_esm_650m_faiss:/models/sprot_esm_650m_faiss
         - /scratch/sprot/sprot_esm_650m_faiss.index:/models/sprot_esm_650m_faiss.index
@@ -22,7 +26,7 @@
             target: /app/llm_homology_api/
             ignore:
               - node_modules/
-          
+
       deploy:
         resources:
           reservations:
