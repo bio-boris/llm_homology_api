@@ -1,16 +1,32 @@
-version: '3'
-services:
-  llm_homology_api:
-    build:
-      context: .
-      args:
-        VCS_REF: ${VCS_REF}
-        VERSION: ${VERSION}
-      dockerfile: Dockerfile
-    ports:
-      - "5001:5000"
-    env_file:
-      - .docker_compose_env
-    volumes:
-      - /scratch/sprot/sprot_esm_650m_faiss:/models/sprot_esm_650m_faiss
-      - /scratch/sprot/sprot_esm_650m_faiss.index:/models/sprot_esm_650m_faiss.index
+  version: '3.8'  # Make sure you're using a version that supports device_requests
+  services:
+    llm_homology_api:
+      build:
+        context: .
+        args:
+          VCS_REF: ${VCS_REF}
+          VERSION: ${VERSION}
+        dockerfile: Dockerfile
+      ports:
+        - "5001:5000"
+      env_file:
+        - .docker_compose_env
+      volumes:
+        - /scratch/sprot/sprot_esm_650m_faiss:/models/sprot_esm_650m_faiss
+        - /scratch/sprot/sprot_esm_650m_faiss.index:/models/sprot_esm_650m_faiss.index
+      develop:
+        watch:
+          # sync static content
+          - path: ./llm_homology_api
+            action: sync
+            target: /app/llm_homology_api/
+            ignore:
+              - node_modules/
+          
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: all
+                capabilities: [gpu]
