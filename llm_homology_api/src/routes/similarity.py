@@ -51,18 +51,12 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
     discard_embeddings = sr.discard_embeddings
     query_sequences = [sequence.sequence for sequence in sr.sequences]
     threshold = sr.threshold
+    top_k = sr.max_hits
 
     ss = request.app.state.ss  # SimilaritySearch instance
 
-    search_results, query_embeddings = ss.search(query_sequences, top_k=sr.max_hits)
+    search_results, query_embeddings = ss.search(query_sequences, top_k=1)
 
-    # BatchedSearchResults(total_scores=[
-    #     [0.9999261498451233, 0.9999261498451233, 0.9999261498451233, 0.9999261498451233, 0.9999165534973145, 0.9999165534973145, 0.9999165534973145,
-    #      0.9998984336853027, 0.9998682737350464, 0.9998661875724792],
-    #     [0.9932831525802612, 0.9930819869041443, 0.9930461049079895, 0.9929633140563965, 0.9927730560302734, 0.992717981338501, 0.9927024245262146,
-    #      0.9921532273292542, 0.9919975996017456, 0.9907838702201843]],
-    #                      total_indices=[[387541, 126527, 126524, 126526, 126522, 126520, 126521, 387535, 387536, 126531],
-    #                                     [301217, 301220, 127059, 281436, 214578, 214579, 127042, 127046, 214572, 281423]])
 
     pruned_hits = []
 
