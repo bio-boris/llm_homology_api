@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from fastapi import APIRouter, Request
 
 from config import get_settings
@@ -54,11 +56,13 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
     ss = request.app.state.ss  # SimilaritySearch instance
 
-    results, query_embeddings = ss.search(query_sequences, top_k=sr.max_hits)
+    search_results, query_embeddings = ss.search(query_sequences, top_k=sr.max_hits)
 
     proteins = []
     for i, protein in enumerate(query_sequences):
-        putative_hits = results[i]
+        putative_hits = search_results[i]
+
+        pprint(putative_hits)
         pruned_hits = []
         for score, ind in zip(putative_hits.total_scores, putative_hits.total_indices):
             if score > threshold:
