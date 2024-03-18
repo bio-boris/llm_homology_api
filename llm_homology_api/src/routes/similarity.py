@@ -62,18 +62,16 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
     for score, ind in zip(search_results.total_scores, search_results.total_indices):
         pruned_result = []
-        print(search_results.total_scores)
-        print(search_results.total_indices)
+
         print(f"Comparing score {score} and {threshold}")
-        if score > threshold:
-            # Get the sequence tags found by the search
-            seq_id = ss.get_sequence_tags(ind)
-            embedding = []
-            if not discard_embeddings:
-                embedding = ss.get_sequence_embeddings(ind)
-                # Convert to python list for REST API
-                embedding = [float(i) for i in embedding[0].tolist()]
-            pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
+        # Get the sequence tags found by the search
+        seq_id = ss.get_sequence_tags(ind)
+        embedding = []
+        if not discard_embeddings:
+            embedding = ss.get_sequence_embeddings(ind)
+            # Convert to python list for REST API
+            embedding = [float(i) for i in embedding[0].tolist()]
+        pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
         pruned_hits.append(pruned_result)
 
     proteins = []
