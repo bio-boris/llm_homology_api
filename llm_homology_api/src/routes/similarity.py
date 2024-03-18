@@ -67,8 +67,8 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
         if not discard_embeddings:
             embedding = ss.get_sequence_embeddings(ind)
             # Convert to python list for REST API
-            embedding = [float(i) for i in embedding[ind].tolist()]
-        pruned_result.append(HitDetail(HitID=seq_id[ind], Score=score[ind], Embedding=embedding))
+            embedding = [float(i) for i in embedding[0].tolist()]
+        pruned_result.append(HitDetail(HitID=seq_id[0], Score=score[0], Embedding=embedding))
         pruned_hits.append(pruned_result)
 
     proteins = []
