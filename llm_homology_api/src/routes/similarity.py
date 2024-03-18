@@ -57,19 +57,20 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
     search_results, query_embeddings = ss.search(query_sequences, top_k=top_k)
 
-
     pruned_hits = []
-
     for score, ind in zip(search_results.total_scores, search_results.total_indices):
         pruned_result = []
         seq_id = ss.get_sequence_tags(ind)
-        embedding = []
-        if not discard_embeddings:
-            embedding = ss.get_sequence_embeddings(ind)
-            # Convert to python list for REST API
-            embedding = [float(i) for i in embedding[0].tolist()]
-        pruned_result.append(HitDetail(HitID=seq_id[0], Score=score[0], Embedding=embedding))
-        pruned_hits.append(pruned_result)
+
+        for i in range(len(score)):
+            embedding = []
+            if not discard_embeddings:
+                embedding = ss.get_sequence_embeddings(ind)
+                # Convert to python list for REST API
+                embedding = [float(idx) for idx in embedding[i].tolist()]
+
+            pruned_result.append(HitDetail(HitID=seq_id[i], Score=score[i], Embedding=embedding))
+            pruned_hits.append(pruned_result)
 
     proteins = []
     for i, protein in enumerate(sr.sequences):
