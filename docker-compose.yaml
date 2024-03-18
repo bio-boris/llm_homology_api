@@ -21,9 +21,9 @@
       develop:
         watch:
           # sync static content
-          - path: ./llm_homology_api
+          - path: llm_homology_api
             action: sync
-            target: /app/llm_homology_api/
+            target: /app/llm_homology_api
             ignore:
               - node_modules/
 

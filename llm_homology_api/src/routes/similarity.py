@@ -68,6 +68,7 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
     for score, ind in zip(search_results.total_scores, search_results.total_indices):
         pruned_result = []
+        print(f"Comparing score {score} and {threshold}")
         if score > threshold:
             # Get the sequence tags found by the search
             seq_id = ss.get_sequence_tags(ind)
