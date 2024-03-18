@@ -35,11 +35,11 @@ class SimilarityRequest(BaseModel):
         description="A list of protein sequences.",
     )
     threshold: float = Field(
-        default=0.9,
+        default=0.8,
         description="Similarity threshold for LLM search. This will prune the results of the search.",
     )
     max_hits: int = Field(default=3, description="Maximum number of hits to return")
     discard_embeddings: bool = Field(
-        default=False,
+        default=True,
         description="Boolean value to determine whether to discard the embeddings of the queries and hits",
     )
