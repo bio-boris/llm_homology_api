@@ -8,29 +8,6 @@ router = APIRouter()
 settings = get_settings()
 
 
-def process_homologous_sequences(ss, result, threshold):
-    homologous = {"total_hits": 0, "Hits": {}}
-    for score, ind in zip(result.total_scores, result.total_indices):
-        if score > threshold:
-            seq_id = ss.get_sequence_tags(ind)
-            embedding = ss.get_sequence_embeddings(ind)
-            embedding_list = [float(i) for i in embedding[0].tolist()]
-            homologous["Hits"][seq_id] = {"Score": score, "Embedding": embedding_list}
-            homologous["total_hits"] += 1
-    return homologous
-
-
-def construct_query_protein(ss, query_index, query_embedding, result, threshold):
-    query_seq_tag = ss.get_sequence_tags(query_index)
-    query_embedding_list = [float(e) for e in query_embedding.tolist()]
-    homologous = process_homologous_sequences(ss, result, threshold)
-    return {
-        "QueryId": query_seq_tag,
-        "Embedding": query_embedding_list,
-        "Homologous": homologous,
-    }
-
-
 @router.post("/similarity", response_model=SimilarityResponse)
 async def calculate_similarity(request: Request, sr: SimilarityRequest):
     f"""
@@ -83,32 +60,3 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
         proteins.append(qp)
 
     return SimilarityResponse(proteins=proteins)
-
-    #     result = results[i]
-    #
-    #
-    #     query_proteins.append({"QueryId": protein.id, "Embedding": query_embeddings[i] if not discard_embeddings else None,
-    #                            "Homologous": {"total_hits": 0, "Hits": {}}})
-    #
-    # query_proteins = []
-    #
-    # # Combine each query embedding with its corresponding result into pairs
-    # query_pairs = zip(query_embeddings, results)
-    #
-    # # Enumerate over these pairs to get both the index and the pair itself in each iteration
-    # enumerated_pairs = enumerate(query_pairs)
-    #
-    # # Start the loop over these enumerated pairs
-    # for query_index, pair in enumerated_pairs:
-    #     # Unpack each pair into query_embedding and result
-    #     query_embedding, result = pair
-    #     query_protein = construct_query_protein(ss, query_index, query_embedding, result, threshold)
-    #     query_proteins.append(query_protein)
-    #
-    # # for query_index, (query_embedding, result) in enumerate(zip(query_embeddings, results)):
-
-    # return sr
-
-#
-# scores: [0.9999960660934448, 0.9999607801437378, 0.9981087446212769, 0.9968844056129456, 0.9927204847335815], indices: [467483, 322842, 322841, 322840, 467500], tags: ['Q5HAN0', 'Q5FFY2', 'Q2GHB1', 'Q3YRG6', 'Q0BLD5'], embeddings: (5, 1280)
-# scores: [0.9999743700027466, 0.9885836243629456, 0.9855018854141235, 0.9789844751358032, 0.9772171974182129], indices: [467484, 436849, 142681, 520408, 467490], tags: ['Q5AYI7', 'P54967', 'O59778', 'Q11S94', 'A5FLT1'], embeddings: (5, 1280)
