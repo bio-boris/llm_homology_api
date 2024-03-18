@@ -55,7 +55,7 @@ async def calculate_similarity(request: Request, sr: SimilarityRequest):
 
     ss = request.app.state.ss  # SimilaritySearch instance
 
-    search_results, query_embeddings = ss.search(query_sequences, top_k=1)
+    search_results, query_embeddings = ss.search(query_sequences, top_k=top_k)
 
 
     pruned_hits = []
