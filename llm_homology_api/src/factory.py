@@ -16,12 +16,13 @@ def create_app(
     valid_tokens_cache=None,
     admin_roles=None,
     auth_url=None,
-    ss_dataset_dir="/models/sprot_esm_650m_faiss",
+    ss_dataset_dir=None,
 ):
 
     cfg = LLMHomologyApiSettings()
     # Required to be set to "" to get docs working for local development
     root_path = cfg.ROOT_PATH if cfg.ROOT_PATH != "" else None
+    model_dir = cfg.MODEL_DIR if cfg.MODEL_DIR != "" else None
 
     app = FastAPI(
         title="LLM Homology API",
@@ -71,5 +72,5 @@ def create_app(
     # if os.environ.get("DEBUG", 1) == 1:
     #     app.state.ss = None
     # else:
-    app.state.ss = setup_similarity_search(ss_dataset_dir)
+    app.state.ss = setup_similarity_search(model_dir)
     return app

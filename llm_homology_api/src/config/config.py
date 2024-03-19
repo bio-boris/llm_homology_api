@@ -16,6 +16,7 @@ class LLMHomologyApiSettings(BaseSettings):
     AUTH_URL: str
     ADMIN_ROLES: list = ["LLMHomologyAdmin"]
     VCS_REF: str
+    MODEL_DIR: str
 
     class Config:
         extra = "forbid"

@@ -1,6 +1,8 @@
 from pprint import pprint
 
 import protein_search.search
+from protein_search.search import BatchedSearchResults
+
 from fastapi import APIRouter, Request
 
 from config import get_settings
@@ -42,12 +44,9 @@ def process_hits(
                 if not discard_embeddings:
                     # get_sequence_embeddings will return shape (1, EmbeddingDim).
                     embeddings_raw = ss.get_sequence_embeddings(indices)
-                    embedding = [list(map(float, e)) for e in embeddings_raw]
+                    embedding = [list(map(float, e)) for e in embeddings_raw][0]
 
-                pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding[0]))
-        # Unprocessible entity troubelshooting
-        print(pruned_result)
-
+                pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
         pruned_hits.append(pruned_result)
     return pruned_hits
 
@@ -66,7 +65,9 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     Please ensure that your request does not exceed these constraints.
     """
     query_sequences = [sequence.sequence for sequence in similarity_request.sequences]
-    search_results, query_embeddings = request.app.state.ss.search(query_sequences, top_k=similarity_request.max_hits)
+    search_results, query_embeddings = request.app.state.ss.search(
+        query_sequences, top_k=similarity_request.max_hits
+    )  # type: BatchedSearchResults, list[np.ndarray]
     pruned_hits = process_hits(
         search_results,
         similarity_request.threshold,
@@ -77,14 +78,14 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     for i, query in enumerate(similarity_request.sequences):
         query_embedding = []
         if not similarity_request.discard_embeddings:
-            query_embedding = [list(map(float, e)) for e in query_embeddings[i]]
+            query_embedding = list(map(float, query_embeddings[i]))
+
         proteins.append(
             QueryProtein(
                 QueryId=query.id,
                 Embedding=query_embedding,
-                total_hits=1,
+                total_hits=len(pruned_hits[i]),
                 Hits=pruned_hits[i],
             )
         )
-    pprint(SimilarityResponse(proteins=proteins))
     return SimilarityResponse(proteins=proteins)
