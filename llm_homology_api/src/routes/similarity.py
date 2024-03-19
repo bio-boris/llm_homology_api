@@ -41,9 +41,10 @@ def process_hits(
                 embedding = []
                 if not discard_embeddings:
                     # get_sequence_embeddings will return shape (1, EmbeddingDim).
-                    embeddings_raw = ss.get_sequence_embeddings(indices)[0].tolist()
+                    embeddings_raw = ss.get_sequence_embeddings(indices)
                     embedding = [list(map(float, e)) for e in embeddings_raw]
-                pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
+
+                pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding[0]))
         # Unprocessible entity troubelshooting
         print(pruned_result)
 
