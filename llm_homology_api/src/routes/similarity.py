@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import protein_search.search
 from fastapi import APIRouter, Request
 
@@ -83,4 +85,5 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
                 Hits=pruned_hits[i],
             )
         )
+    pprint(SimilarityResponse(proteins=proteins))
     return SimilarityResponse(proteins=proteins)
