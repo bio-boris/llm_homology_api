@@ -37,7 +37,8 @@ def process_hits(search_results: protein_search.search.BatchedSearchResults,
             if score >= threshold:
                 embedding = []
                 if not discard_embeddings:
-                    embeddings_raw = ss.get_sequence_embeddings(indices)
+                    # get_sequence_embeddings will return shape (1, EmbeddingDim).
+                    embeddings_raw = ss.get_sequence_embeddings(indices)[0].tolist()
                     embedding = [list(map(float, e)) for e in embeddings_raw]
                 pruned_result.append(
                     HitDetail(HitID=seq_id, Score=score, Embedding=embedding)

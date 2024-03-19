@@ -23,7 +23,7 @@ class QueryProtein(BaseModel):
     )
     total_hits: int = Field(
         ...,
-        description="The total number of homologous sequences found before trimming based on total hits and threshold.",
+        description="The total number of homologous sequences found after trimming based on max hits and threshold score.",
     )
     Hits: List[HitDetail] = Field(
         default_factory=list,
