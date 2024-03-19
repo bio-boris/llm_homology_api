@@ -35,9 +35,7 @@ def is_authorized(
     :return: A boolean indicating if the user is authorized or not
     """
     if not authorization and not kbase_session:
-        logging.warning(
-            f"No authorization header or kbase_session cookie provided for {method} payload: {payload}"
-        )
+        logging.warning(f"No authorization header or kbase_session cookie provided for {method} payload: {payload}")
         raise HTTPException(
             status_code=401,
             detail=f"Please provide the 'Authorization' header or 'kbase_session' cookie for {method} payload: {payload} ",
@@ -61,8 +59,6 @@ async def verify_request_size(request: Request, call_next):
     settings = get_settings()
     content_length = request.headers.get("content-length")
     if content_length and int(content_length) > settings.MAX_REQUEST_SIZE:
-        return JSONResponse(
-            status_code=413, content={"detail": "Request body too large"}
-        )
+        return JSONResponse(status_code=413, content={"detail": "Request body too large"})
     response = await call_next(request)
     return response

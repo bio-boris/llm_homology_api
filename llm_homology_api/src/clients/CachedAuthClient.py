@@ -6,9 +6,7 @@ from fastapi import HTTPException
 
 
 class UserAuthRoles:
-    def __init__(
-        self, username: str, user_roles: list[str], admin_roles: list[str], token: str
-    ):
+    def __init__(self, username: str, user_roles: list[str], admin_roles: list[str], token: str):
         self.username = username
         self.user_roles = user_roles
         self.admin_roles = admin_roles
@@ -99,9 +97,7 @@ class CachedAuthClient:
         try:
             response = requests.get(url=self.auth_url, headers={"Authorization": token})
         except Exception:
-            raise HTTPException(
-                status_code=500, detail="Auth service is down or bad request"
-            )
+            raise HTTPException(status_code=500, detail="Auth service is down or bad request")
         if response.status_code == 200:
             resonse = response.json()
             if "customroles" not in response.json():
@@ -111,10 +107,6 @@ class CachedAuthClient:
                 )
             return resonse["user"], resonse["customroles"]
         elif response.status_code == 404:
-            raise HTTPException(
-                status_code=404, detail="Auth URL not configured correctly"
-            )
+            raise HTTPException(status_code=404, detail="Auth URL not configured correctly")
         else:
-            raise HTTPException(
-                status_code=response.status_code, detail=response.json()["error"]
-            )
+            raise HTTPException(status_code=response.status_code, detail=response.json()["error"])

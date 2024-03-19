@@ -3,12 +3,8 @@ from pydantic import BaseModel, Field
 
 
 class HitDetail(BaseModel):
-    HitID: str = Field(
-        ..., description="The unique identifier of the homologous sequence."
-    )
-    Score: float = Field(
-        ..., description="The similarity score of the homologous sequence."
-    )
+    HitID: str = Field(..., description="The unique identifier of the homologous sequence.")
+    Score: float = Field(..., description="The similarity score of the homologous sequence.")
     Embedding: Optional[List[float]] = Field(
         None,
         description="The embedding vector associated with the homologous sequence, included based on a flag.",

@@ -5,7 +5,9 @@ from protein_search.search import SimilaritySearch
 
 
 def setup_embeddings(
-        model_name="esm2", pretrained_model_name_or_path="facebook/esm2_t33_650M_UR50D", compile_model=False
+    model_name="esm2",
+    pretrained_model_name_or_path="facebook/esm2_t33_650M_UR50D",
+    compile_model=False,
 ):
     """
     Set up the embedder to use for similarity search
