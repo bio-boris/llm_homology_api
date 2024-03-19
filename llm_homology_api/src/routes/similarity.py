@@ -1,9 +1,6 @@
-from pprint import pprint
-
 import protein_search.search
-from protein_search.search import BatchedSearchResults
-
 from fastapi import APIRouter, Request
+from protein_search.search import BatchedSearchResults
 
 from config import get_settings
 from models.request_models import SimilarityRequest
