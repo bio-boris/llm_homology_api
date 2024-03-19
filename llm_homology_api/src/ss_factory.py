@@ -5,7 +5,7 @@ from protein_search.search import SimilaritySearch
 
 
 def setup_embeddings(
-    model_name="esm2", pretrained_model_name_or_path="facebook/esm2_t33_650M_UR50D"
+        model_name="esm2", pretrained_model_name_or_path="facebook/esm2_t33_650M_UR50D", compile_model=False
 ):
     """
     Set up the embedder to use for similarity search
@@ -24,7 +24,7 @@ def setup_embeddings(
             # The name of the model architecture to use
             "name": model_name,
             # The model id to use for generating the embeddings
-            # Looks like this downloads from the internet? #TODO Ask alex about this
+            # Looks like this downloads from the internet if its not available to local disk
             "pretrained_model_name_or_path": pretrained_model_name_or_path,
             # Use the model in half precision
             "half_precision": True,
@@ -33,11 +33,12 @@ def setup_embeddings(
             # Compile the model for faster inference
             # Note: This can actually slow down the inference
             # if the number of queries is small
-            "compile_model": True,
+            "compile_model": compile_model,
         },
     )
 
 
-def setup_similarity_search(ss_dataset_dir):
-    embedder = setup_embeddings()
+def setup_similarity_search(ss_dataset_dir: str, embedder=None, compile_model=False):
+    if embedder is None:
+        embedder = setup_embeddings(compile_model=compile_model)
     return SimilaritySearch(dataset_dir=Path(ss_dataset_dir), embedder=embedder)
