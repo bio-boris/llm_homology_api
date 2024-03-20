@@ -6,7 +6,7 @@ import pytest
 def mock_env_vars(monkeypatch):
     # Setting environment variables
     monkeypatch.setenv("VERSION", "123")
-    monkeypatch.setenv("ROOT_PATH", "mock_sentry_dsn")
+    monkeypatch.setenv("ROOT_PATH", "/")
     monkeypatch.setenv("AUTH_URL", "user")
     monkeypatch.setenv("VCS_REF", "password")
     monkeypatch.setenv("DOTENV_FILE_LOCATION", ".docker_compose_env")

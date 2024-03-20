@@ -28,6 +28,10 @@ def process_hits(
     """
 
     pruned_hits = []
+    # print(search_results)
+    # print(dir(search_results))
+    # Print out structure of search_results
+
     for hit_scores, hit_indices in zip(search_results.total_scores, search_results.total_indices):
         if len(hit_scores) != len(hit_indices):
             raise ValueError("Length of scores and indices do not match.")
@@ -87,6 +91,10 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     search_results, query_embeddings = request.app.state.ss.search(
         query_sequences, top_k=similarity_request.max_hits
     )  # type: BatchedSearchResults, np.ndarray
+    # print("Search results are")
+    # print(search_results)
+    # print("Query embeddings are")
+    # print(query_embeddings)
     pruned_hits = process_hits(
         search_results,
         similarity_request.threshold,

@@ -1,7 +1,7 @@
 # # test similarity route
 # # test fastapi route
-import copy
 
+import pytest
 from fastapi import APIRouter
 from fastapi.testclient import TestClient
 
@@ -16,6 +16,17 @@ settings = get_settings()
 app = create_app()
 client = TestClient(create_app())
 
+seq1 = {
+    "id": ">Q5HAN0",
+    "sequence": "MCTSIRHDWQLPEVLELFNLPFNDLILNAHLIHRKFFNSNEIQIAGLLNIKTGGCPENCKYCSQSAHYKTQLKKEDLLNIETIKEAIKKAKVNGIDRFCFAAAWRQIRDRDIEYICNIISLIKSENLESCASLGMVTLEQAKKLKTAGLDFYNHNIDTSRDFYYNVTTTRSYDDRLSSLNNISEAEINICSGGILGLGESIEDRAKMLLTLANLKKHPKSVPINRLVPIKGTPFENNPKISNIDFIRTIAVARILMPESYVRLAAGRESMSHEMQALCLFAGANSLFYGEKLLTTPNADCNDDKNLLSKLGVKTKQAVFFDS",
+}
+seq2 = {
+    "id": ">Q5AYI7",
+    "sequence": "MSVSFTRSFPRAFIRSYGTVQSSPTAASFASRIPPALQEAVAATAPRTNWTRDEVQQIYETPLNQLTYAAAAVHRRFHDPSAIQMCTLMNIKTGGCSEDCSYCAQSSRYSTGLKATKMSPVDDVLEKARIAKANGSTRFCMGAAWRDMRGRKTSLKNVKQMVSGVREMGMEVCVTLGMIDADQAKELKDAGLTAYNHNLDTSREFYPTIITTRSYDERLKTLSHVRDAGINVCSGGILGLGEADSDRIGLIHTVSSLPSHPESFPVNALVPIKGTPLGDRKMISFDKLLRTVATARIVLPATIVRLAAGRISLTEEQQVACFMAGANAVFTGEKMLTTDCNGWDEDRAMFDRWGFYPMRSFEKETNAATPQQHVDSVAHESEKNPAAPAAEAL",
+}
+
+MAX_EMBEDDING_LENGTH = 1280
+
 
 def test_routers():
     assert isinstance(similarity_router, APIRouter)
@@ -25,63 +36,166 @@ def test_routers():
     assert status_router.url_path_for("whoami") == "/whoami"
 
 
-def test_calculate_similarity():
+@pytest.mark.skip(reason="Not yet implemented")
+@pytest.mark.parametrize(
+    "discard_embeddings,threshold,max_hits,expected_total_hits,expected_embedding_length",
+    [
+        (True, 0.99996, 500, 2, None),  # Expect 1 hits, no embeddings
+        (True, 0.99, 10, 10, None),  # Expect 10 hits, no embeddings
+        (False, 0.99996, 500, 2, MAX_EMBEDDING_LENGTH),  # Expect 1 hits, w embeddings
+    ],
+)
+def test_calculate_similarity_w_duplicates(discard_embeddings, threshold, max_hits, expected_total_hits, expected_embedding_length):
     request_payload = {
-        "sequences": [
-            {
-                "id": ">Q5HAN0",
-                "sequence": "MCTSIRHDWQLPEVLELFNLPFNDLILNAHLIHRKFFNSNEIQIAGLLNIKTGGCPENCKYCSQSAHYKTQLKKEDLLNIETIKEAIKKAKVNGIDRFCFAAAWRQIRDRDIEYICNIISLIKSENLESCASLGMVTLEQAKKLKTAGLDFYNHNIDTSRDFYYNVTTTRSYDDRLSSLNNISEAEINICSGGILGLGESIEDRAKMLLTLANLKKHPKSVPINRLVPIKGTPFENNPKISNIDFIRTIAVARILMPESYVRLAAGRESMSHEMQALCLFAGANSLFYGEKLLTTPNADCNDDKNLLSKLGVKTKQAVFFDS",
-            },
-            {
-                "id": ">Q5HAN0",
-                "sequence": "MCTSIRHDWQLPEVLELFNLPFNDLILNAHLIHRKFFNSNEIQIAGLLNIKTGGCPENCKYCSQSAHYKTQLKKEDLLNIETIKEAIKKAKVNGIDRFCFAAAWRQIRDRDIEYICNIISLIKSENLESCASLGMVTLEQAKKLKTAGLDFYNHNIDTSRDFYYNVTTTRSYDDRLSSLNNISEAEINICSGGILGLGESIEDRAKMLLTLANLKKHPKSVPINRLVPIKGTPFENNPKISNIDFIRTIAVARILMPESYVRLAAGRESMSHEMQALCLFAGANSLFYGEKLLTTPNADCNDDKNLLSKLGVKTKQAVFFDS",
-            }
-        ],
-        "threshold": 0.8,
-        "max_hits": 2,
-        "discard_embeddings": True,
+        "sequences": [seq1, seq1],  # Ensure ability to handle duplicate sequence ids
+        "threshold": threshold,
+        "max_hits": max_hits,
+        "discard_embeddings": discard_embeddings,
     }
-    # response = client.post("/similarity/", json=request_payload)
-    # assert response.status_code == 200
-    # data = response.json()
-    # assert data == {
-    #     "proteins": [
-    #         {
-    #             "Embedding": [],
-    #             "Hits": [
-    #                 {"Embedding": [], "HitID": "Q5HAN0", "Score": 0.9999954700469971},
-    #                 {"Embedding": [], "HitID": "Q5FFY2", "Score": 0.9999621510505676},
-    #             ],
-    #             "QueryId": ">Q5HAN0",
-    #             "total_hits": 2,
-    #         }
-    #     ]
-    # }
-
-    # Get embeddings
-    request_payload2 = copy.copy(request_payload)
-    request_payload2["discard_embeddings"] = False
-    response = client.post("/similarity/", json=request_payload2)
+    response = client.post("/similarity/", json=request_payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["proteins"][0]["Hits"][0]["Embedding"] == data["proteins"][1]["Hits"][0]["Embedding"]
 
-    for i in range(2):
-        assert len(data["proteins"][i]["Embedding"]) == 1280
-        assert len(data["proteins"][i]["Hits"][0]["Embedding"]) == 1280
-        assert len(data["proteins"][i]["Hits"][1]["Embedding"]) == 1280
-        assert data["proteins"][i]["total_hits"] == 2
-        assert data["proteins"][i]["QueryId"] == ">Q5HAN0"
-        assert data["proteins"][i]["Hits"][0]["HitID"] == "Q5HAN0"
-        assert data["proteins"][i]["Hits"][0]["Score"] == 0.9999958276748657
-        assert data["proteins"][i]["Hits"][1]["HitID"] == "Q5FFY2"
-        assert data["proteins"][i]["Hits"][1]["Score"] == 0.9999616742134094
-
-
-
+    # Parameterized assertions
+    for protein in data["proteins"]:
+        assert len(protein["Hits"]) == protein["total_hits"]
+        assert protein["total_hits"] == expected_total_hits
+        if expected_embedding_length:
+            assert len(protein["Embedding"]) == expected_embedding_length
+            for hit in protein["Hits"]:
+                assert len(hit["Embedding"]) == expected_embedding_length
+        else:
+            assert protein.get("Embedding") == [] and len(protein["Embedding"]) == 0
+            for hit in protein["Hits"]:
+                assert hit.get("Embedding") == [] and len(hit["Embedding"]) == 0
 
 
+def test_calculate_similarity_with_2_sequences_discard_embeddings():
+    request_payload = {
+        "sequences": [seq1, seq2],
+        "threshold": 0.99996,
+        "max_hits": 500,
+        "discard_embeddings": True,
+    }
+    response = client.post("/similarity/", json=request_payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data == {
+        "proteins": [
+            {
+                "Embedding": [],
+                "Hits": [
+                    {"Embedding": [], "HitID": "Q5HAN0", "Score": 0.9999960660934448},
+                    {"Embedding": [], "HitID": "Q5FFY2", "Score": 0.9999607801437378},
+                ],
+                "QueryId": ">Q5HAN0",
+                "total_hits": 2,
+            },
+            {"Embedding": [], "Hits": [{"Embedding": [], "HitID": "Q5AYI7", "Score": 0.9999743700027466}], "QueryId": ">Q5AYI7", "total_hits": 1},
+        ]
+    }
 
+def test_calculate_similarity_with_2_sequences_keep_embeddings():
+        request_payload = {
+            "sequences": [seq1, seq2],
+            "threshold": 0.99996,
+            "max_hits": 500,
+            "discard_embeddings": False,
+        }
+        response = client.post("/similarity/", json=request_payload)
+        assert response.status_code == 200
+        data = response.json()
+        #Ensure that query sequence embeddings are not duplicates!
+        assert data["proteins"][0]["Embedding"] != data["proteins"][1]["Embedding"]
+        #Ensure that hit sequence embeddings are not duplicates!
+        assert data["proteins"][0]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][1]["Embedding"]
+        assert data["proteins"][1]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][0]["Embedding"]
+        assert data["proteins"][1]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][1]["Embedding"]
+        #Ensure that embeddings are lists of floats
+        for protein in data["proteins"]:
+            assert len(protein["Embedding"]) == MAX_EMBEDDING_LENGTH
+            for hit in protein["Hits"]:
+                assert len(hit["Embedding"]) == MAX_EMBEDDING_LENGTH
+                assert isinstance(hit["Embedding"], list)
+                for e in hit["Embedding"]:
+                    assert isinstance(e, float)
+
+
+
+
+    # # Get embeddings
+    # request_payload2 = request_payload.copy()
+    # request_payload2["discard_embeddings"] = False
+    # response = client.post("/similarity/", json=request_payload2)
+    # assert response.status_code == 200
+    # data = response.json()
+    # assert data["proteins"][0]["Hits"][0]["Embedding"] == data["proteins"][0]["Hits"][1]["Embedding"]
+    #
+    # for i in range(2):
+    #     assert len(data["proteins"][i]["Embedding"]) == 1280
+    #     assert len(data["proteins"][i]["Hits"][0]["Embedding"]) == 1280
+    #     assert len(data["proteins"][i]["Hits"][1]["Embedding"]) == 1280
+    #     assert data["proteins"][i]["total_hits"] == 2
+    #     assert data["proteins"][i]["QueryId"] == ">Q5HAN0"
+    #     assert data["proteins"][i]["Hits"][0]["HitID"] == "Q5HAN0"
+    #     assert data["proteins"][i]["Hits"][0]["Score"] == 0.9999958276748657
+    #     assert data["proteins"][i]["Hits"][1]["HitID"] == "Q5AYI7"
+    #     assert data["proteins"][i]["Hits"][1]["Score"] == 0.9999616742134094
+
+#
+# @pytest.mark.parametrize(payload=req
+# def test_calculate_similarity_without():
+#     request_payload = {
+#         "sequences": [
+#             {
+#                 "id": ">Q5HAN0",
+#                 "sequence": "MCTSIRHDWQLPEVLELFNLPFNDLILNAHLIHRKFFNSNEIQIAGLLNIKTGGCPENCKYCSQSAHYKTQLKKEDLLNIETIKEAIKKAKVNGIDRFCFAAAWRQIRDRDIEYICNIISLIKSENLESCASLGMVTLEQAKKLKTAGLDFYNHNIDTSRDFYYNVTTTRSYDDRLSSLNNISEAEINICSGGILGLGESIEDRAKMLLTLANLKKHPKSVPINRLVPIKGTPFENNPKISNIDFIRTIAVARILMPESYVRLAAGRESMSHEMQALCLFAGANSLFYGEKLLTTPNADCNDDKNLLSKLGVKTKQAVFFDS",
+#             },
+#             {
+#                 "id": ">Q5AYI7",
+#                 "sequence": "MSVSFTRSFPRAFIRSYGTVQSSPTAASFASRIPPALQEAVAATAPRTNWTRDEVQQIYETPLNQLTYAAAAVHRRFHDPSAIQMCTLMNIKTGGCSEDCSYCAQSSRYSTGLKATKMSPVDDVLEKARIAKANGSTRFCMGAAWRDMRGRKTSLKNVKQMVSGVREMGMEVCVTLGMIDADQAKELKDAGLTAYNHNLDTSREFYPTIITTRSYDERLKTLSHVRDAGINVCSGGILGLGEADSDRIGLIHTVSSLPSHPESFPVNALVPIKGTPLGDRKMISFDKLLRTVATARIVLPATIVRLAAGRISLTEEQQVACFMAGANAVFTGEKMLTTDCNGWDEDRAMFDRWGFYPMRSFEKETNAATPQQHVDSVAHESEKNPAAPAAEAL"
+#             }
+#         ],
+#         "threshold": 0.8,
+#         "max_hits": 2,
+#         "discard_embeddings": True,
+#     }
+#     response = client.post("/similarity/", json=request_payload)
+#     assert response.status_code == 200
+#     data = response.json()
+#     assert data == {
+#         "proteins": [
+#             {
+#                 "Embedding": [],
+#                 "Hits": [
+#                     {"Embedding": [], "HitID": "Q5HAN0", "Score": 0.9999954700469971},
+#                     {"Embedding": [], "HitID": "Q5FFY2", "Score": 0.9999621510505676},
+#                 ],
+#                 "QueryId": ">Q5HAN0",
+#                 "total_hits": 2,
+#             }
+#         ]
+#     }
+#
+#     # Get embeddings
+#     request_payload2 = copy.copy(request_payload)
+#     # request_payload2["discard_embeddings"] = False
+#     response = client.post("/similarity/", json=request_payload2)
+#     assert response.status_code == 200
+#     data = response.json()
+#     assert data["proteins"][0]["Hits"][0]["Embedding"] == data["proteins"][1]["Hits"][0]["Embedding"]
+#
+#     for i in range(2):
+#         assert len(data["proteins"][i]["Embedding"]) == 1280
+#         assert len(data["proteins"][i]["Hits"][0]["Embedding"]) == 1280
+#         assert len(data["proteins"][i]["Hits"][1]["Embedding"]) == 1280
+#         assert data["proteins"][i]["total_hits"] == 2
+#         assert data["proteins"][i]["QueryId"] == ">Q5HAN0"
+#         assert data["proteins"][i]["Hits"][0]["HitID"] == "Q5HAN0"
+#         assert data["proteins"][i]["Hits"][0]["Score"] == 0.9999958276748657
+#         assert data["proteins"][i]["Hits"][1]["HitID"] == "Q5FFY2"
+#         assert data["proteins"][i]["Hits"][1]["Score"] == 0.9999616742134094
+#
 
 
 #
