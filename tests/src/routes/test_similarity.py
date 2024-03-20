@@ -45,7 +45,9 @@ def test_routers():
         (False, 0.99996, 500, 2, MAX_EMBEDDING_LENGTH),  # Expect 1 hits, w embeddings
     ],
 )
-def test_calculate_similarity_w_duplicates(discard_embeddings, threshold, max_hits, expected_total_hits, expected_embedding_length):
+def test_calculate_similarity_w_duplicates(
+    discard_embeddings, threshold, max_hits, expected_total_hits, expected_embedding_length
+):
     request_payload = {
         "sequences": [seq1, seq1],  # Ensure ability to handle duplicate sequence ids
         "threshold": threshold,
@@ -91,7 +93,12 @@ def test_calculate_similarity_with_2_sequences_discard_embeddings():
                 "QueryId": ">Q5HAN0",
                 "total_hits": 2,
             },
-            {"Embedding": [], "Hits": [{"Embedding": [], "HitID": "Q5AYI7", "Score": 0.9999743700027466}], "QueryId": ">Q5AYI7", "total_hits": 1},
+            {
+                "Embedding": [],
+                "Hits": [{"Embedding": [], "HitID": "Q5AYI7", "Score": 0.9999743700027466}],
+                "QueryId": ">Q5AYI7",
+                "total_hits": 1,
+            },
         ]
     }
 

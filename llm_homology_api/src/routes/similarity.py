@@ -15,15 +15,17 @@ settings = get_settings()
 
 
 logging.basicConfig(level=logging.INFO)
+
+
 @functools.lru_cache(maxsize=1024)
 def get_cached_embedding(ss, index):
-    logging.info("missed embedding cache for index", index)
+    logging.info(f"missed embedding cache for index {index}")
     return ss.get_sequence_embeddings([index])[0]
 
 
 @functools.lru_cache(maxsize=1024)
 def get_cached_tag(ss, index):
-    logging.info("missed tag cache for index", index)
+    logging.info(f"missed tag cache for index {index}")
     return ss.get_sequence_tags([index])[0]
 
 
