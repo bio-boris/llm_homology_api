@@ -7,3 +7,4 @@ __pycache__
 .venv
 coverage.xml
 .coverage
+_DS_Store

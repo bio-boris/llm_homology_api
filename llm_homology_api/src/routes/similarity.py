@@ -1,3 +1,5 @@
+import logging
+
 import protein_search.search
 from fastapi import APIRouter, Request
 from protein_search.search import BatchedSearchResults
@@ -6,8 +8,80 @@ from config import get_settings
 from models.request_models import SimilarityRequest
 from models.response_models import SimilarityResponse, QueryProtein, HitDetail
 
+import functools
+
 router = APIRouter()
 settings = get_settings()
+
+
+logging.basicConfig(level=logging.INFO)
+@functools.lru_cache(maxsize=1024)
+def get_cached_embedding(ss, index):
+    logging.info("missed embedding cache for index", index)
+    return ss.get_sequence_embeddings([index])[0]
+
+
+@functools.lru_cache(maxsize=1024)
+def get_cached_tag(ss, index):
+    logging.info("missed tag cache for index", index)
+    return ss.get_sequence_tags([index])[0]
+
+
+def get_embedding_if_not_cached(ss, index):
+    # This will check the LRU cache first and fetch & cache if not present
+    return get_cached_embedding(ss, index)
+
+
+def get_tag_if_not_cached(ss, index):
+    # This will check the LRU cache first and fetch & cache if not present
+    return get_cached_tag(ss, index)
+
+
+def get_filtered_annotations(
+    hit_indices: list[int],
+    hit_scores: list[float],
+    threshold: float,
+    discard_embeddings: bool,
+    ss: protein_search.search.SimilaritySearch,
+) -> tuple[list[float], list[str], list[list[float]]]:
+    """
+    Get the filtered sequence tags and embeddings based on the similarity threshold and discard_embeddings flag.
+    @param hit_indices: Indices of the hits in the database.
+    @param hit_scores: Similarity scores for the hits.
+    @param threshold: Similarity threshold for pruning the search results.
+    @param discard_embeddings: Determine whether to discard the embeddings of the queries and hits.
+    @param ss: SimilaritySearch object used for searching.
+    """
+    # Keep hits with scores above the threshold
+    filtered_indices = [idx for idx, score in zip(hit_indices, hit_scores) if score >= threshold]
+    filtered_scores = [score for score in hit_scores if score >= threshold]
+
+    # Retrieve only filtered sequence tags and embeddings with scores above the threshold
+    # filtered_sequence_tags = ss.get_sequence_tags(filtered_indices)
+    # filtered_sequence_tags = get_sequence_tags_with_cache(ss, tuple(filtered_indices))
+    filtered_sequence_tags = [get_tag_if_not_cached(ss, idx) for idx in filtered_indices]
+
+    # filtered_embeddings = [] if discard_embeddings else ss.get_sequence_embeddings(filtered_indices)
+    # filtered_embeddings = [] if discard_embeddings else get_sequence_embeddings_with_cache(ss, tuple(filtered_indices))
+    filtered_embeddings = [get_embedding_if_not_cached(ss, idx) for idx in filtered_indices]
+
+    if len(filtered_scores) != len(filtered_sequence_tags):
+        raise ValueError(
+            f"Length of filtered scores and sequence tags do not match. Got {len(filtered_scores)} and {len(filtered_sequence_tags)}"
+        )
+
+    if not discard_embeddings:
+        if len(filtered_scores) != len(filtered_embeddings):
+            raise ValueError(
+                f"Length of filtered scores and embeddings do not match. Got {len(filtered_scores)} and {len(filtered_embeddings)}"
+            )
+
+        if len(filtered_sequence_tags) != len(filtered_embeddings):
+            raise ValueError(
+                f"Length of filtered sequence tags and embeddings do not match. Got {len(filtered_sequence_tags)} and {len(filtered_embeddings)}"
+            )
+
+    return filtered_scores, filtered_sequence_tags, filtered_embeddings
 
 
 def process_hits(
@@ -20,58 +94,29 @@ def process_hits(
     Process the search results to prune the hits based on the similarity threshold and discard_embeddings flag.
     @param search_results: BatchedSearchResults object containing the search results.
     @param threshold: Similarity threshold for pruning the search results.
-    @param discard_embeddings: Boolean value to determine whether to discard the embeddings of the queries and hits.
+    @param discard_embeddings: Whether to discard the embeddings of the queries and hits.
     @param ss: SimilaritySearch object used for searching.
-    @return: A list of pruned hits for each query sequence.
+    @return: Pruned hits for each query sequence.
     @rtype: list[list[HitDetail]]
     @raise ValueError: If the length of the scores and indices lists in search_results do not match.
     """
-
     pruned_hits = []
-    # print(search_results)
-    # print(dir(search_results))
-    # Print out structure of search_results
 
     for hit_scores, hit_indices in zip(search_results.total_scores, search_results.total_indices):
         if len(hit_scores) != len(hit_indices):
-            raise ValueError("Length of scores and indices do not match.")
+            raise ValueError(f"Length of scores and indices do not match. Got {len(hit_scores)} and {len(hit_indices)}")
 
-        sequence_tags = ss.get_sequence_tags(hit_indices)
-        filtered_indices = [idx for idx, score in zip(hit_indices, hit_scores) if score >= threshold]
-        embeddings_bulk = ss.get_sequence_embeddings(filtered_indices) if not discard_embeddings else []
+        filtered_scores, sequence_tags, embeddings = get_filtered_annotations(
+            hit_indices, hit_scores, threshold, discard_embeddings, ss
+        )
 
         pruned_result = []
-        for idx, (seq_id, score) in enumerate(zip(sequence_tags, hit_scores)):
-            if score >= threshold:
-                embedding = []
-                if not discard_embeddings:
-                    embedding = list(map(float, embeddings_bulk[idx]))
-                pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
+        for idx, (score, seq_id) in enumerate(zip(filtered_scores, sequence_tags)):
+            embedding = [] if discard_embeddings else list(map(float, embeddings[idx]))
+            pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
 
         pruned_hits.append(pruned_result)
     return pruned_hits
-    #                 # get_sequence_embeddings will return shape (1, EmbeddingDim). If there are multiple indices, the slow axis will be num_indices, not 1.
-
-    # pruned_hits = []
-    # for scores, indices in zip(search_results.total_scores, search_results.total_indices):
-    #
-    #     if len(scores) != len(indices):
-    #         raise ValueError(f"Length of scores ({len(scores)}) and indices ({len(indices)}) do not match.")
-    #
-    #     sequence_tags = ss.get_sequence_tags(indices)
-    #     pruned_result = []
-    #     for idx, (seq_id, score) in enumerate(zip(sequence_tags, scores)):
-    #         if score >= threshold:
-    #             embedding = []
-    #             if not discard_embeddings:
-    #                 # get_sequence_embeddings will return shape (1, EmbeddingDim). If there are multiple indices, the slow axis will be num_indices, not 1.
-    #                 embeddings_raw = ss.get_sequence_embeddings(indices)
-    #                 embedding = [list(map(float, e)) for e in embeddings_raw][0]
-    #
-    #             pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
-    #     pruned_hits.append(pruned_result)
-    # return pruned_hits
-    #
 
 
 @router.post("/similarity", response_model=SimilarityResponse)
@@ -91,22 +136,17 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     search_results, query_embeddings = request.app.state.ss.search(
         query_sequences, top_k=similarity_request.max_hits
     )  # type: BatchedSearchResults, np.ndarray
-    # print("Search results are")
-    # print(search_results)
-    # print("Query embeddings are")
-    # print(query_embeddings)
+
     pruned_hits = process_hits(
         search_results,
         similarity_request.threshold,
         similarity_request.discard_embeddings,
         request.app.state.ss,
     )
+
     proteins = []
     for i, query in enumerate(similarity_request.sequences):
-        query_embedding = []
-        if not similarity_request.discard_embeddings:
-            query_embedding = list(map(float, query_embeddings[i]))
-
+        query_embedding = [] if similarity_request.discard_embeddings else list(map(float, query_embeddings[i]))
         proteins.append(
             QueryProtein(
                 QueryId=query.id,

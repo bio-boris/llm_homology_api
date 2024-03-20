@@ -95,52 +95,51 @@ def test_calculate_similarity_with_2_sequences_discard_embeddings():
         ]
     }
 
+
 def test_calculate_similarity_with_2_sequences_keep_embeddings():
-        request_payload = {
-            "sequences": [seq1, seq2],
-            "threshold": 0.99996,
-            "max_hits": 500,
-            "discard_embeddings": False,
-        }
-        response = client.post("/similarity/", json=request_payload)
-        assert response.status_code == 200
-        data = response.json()
-        #Ensure that query sequence embeddings are not duplicates!
-        assert data["proteins"][0]["Embedding"] != data["proteins"][1]["Embedding"]
-        #Ensure that hit sequence embeddings are not duplicates!
-        assert data["proteins"][0]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][1]["Embedding"]
-        assert data["proteins"][1]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][0]["Embedding"]
-        assert data["proteins"][1]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][1]["Embedding"]
-        #Ensure that embeddings are lists of floats
-        for protein in data["proteins"]:
-            assert len(protein["Embedding"]) == MAX_EMBEDDING_LENGTH
-            for hit in protein["Hits"]:
-                assert len(hit["Embedding"]) == MAX_EMBEDDING_LENGTH
-                assert isinstance(hit["Embedding"], list)
-                for e in hit["Embedding"]:
-                    assert isinstance(e, float)
+    request_payload = {
+        "sequences": [seq1, seq2],
+        "threshold": 0.99996,
+        "max_hits": 500,
+        "discard_embeddings": False,
+    }
+    response = client.post("/similarity/", json=request_payload)
+    assert response.status_code == 200
+    data = response.json()
+    # Ensure that query sequence embeddings are not duplicates!
+    assert data["proteins"][0]["Embedding"] != data["proteins"][1]["Embedding"]
+    # Ensure that hit sequence embeddings are not duplicates!
+    assert data["proteins"][0]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][1]["Embedding"]
+    assert data["proteins"][1]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][0]["Embedding"]
+    assert data["proteins"][1]["Hits"][0]["Embedding"] != data["proteins"][0]["Hits"][1]["Embedding"]
+    # Ensure that embeddings are lists of floats
+    for protein in data["proteins"]:
+        assert len(protein["Embedding"]) == MAX_EMBEDDING_LENGTH
+        for hit in protein["Hits"]:
+            assert len(hit["Embedding"]) == MAX_EMBEDDING_LENGTH
+            assert isinstance(hit["Embedding"], list)
+            for e in hit["Embedding"]:
+                assert isinstance(e, float)
 
 
-
-
-    # # Get embeddings
-    # request_payload2 = request_payload.copy()
-    # request_payload2["discard_embeddings"] = False
-    # response = client.post("/similarity/", json=request_payload2)
-    # assert response.status_code == 200
-    # data = response.json()
-    # assert data["proteins"][0]["Hits"][0]["Embedding"] == data["proteins"][0]["Hits"][1]["Embedding"]
-    #
-    # for i in range(2):
-    #     assert len(data["proteins"][i]["Embedding"]) == 1280
-    #     assert len(data["proteins"][i]["Hits"][0]["Embedding"]) == 1280
-    #     assert len(data["proteins"][i]["Hits"][1]["Embedding"]) == 1280
-    #     assert data["proteins"][i]["total_hits"] == 2
-    #     assert data["proteins"][i]["QueryId"] == ">Q5HAN0"
-    #     assert data["proteins"][i]["Hits"][0]["HitID"] == "Q5HAN0"
-    #     assert data["proteins"][i]["Hits"][0]["Score"] == 0.9999958276748657
-    #     assert data["proteins"][i]["Hits"][1]["HitID"] == "Q5AYI7"
-    #     assert data["proteins"][i]["Hits"][1]["Score"] == 0.9999616742134094
+# # Get embeddings
+# request_payload2 = request_payload.copy()
+# request_payload2["discard_embeddings"] = False
+# response = client.post("/similarity/", json=request_payload2)
+# assert response.status_code == 200
+# data = response.json()
+# assert data["proteins"][0]["Hits"][0]["Embedding"] == data["proteins"][0]["Hits"][1]["Embedding"]
+#
+# for i in range(2):
+#     assert len(data["proteins"][i]["Embedding"]) == 1280
+#     assert len(data["proteins"][i]["Hits"][0]["Embedding"]) == 1280
+#     assert len(data["proteins"][i]["Hits"][1]["Embedding"]) == 1280
+#     assert data["proteins"][i]["total_hits"] == 2
+#     assert data["proteins"][i]["QueryId"] == ">Q5HAN0"
+#     assert data["proteins"][i]["Hits"][0]["HitID"] == "Q5HAN0"
+#     assert data["proteins"][i]["Hits"][0]["Score"] == 0.9999958276748657
+#     assert data["proteins"][i]["Hits"][1]["HitID"] == "Q5AYI7"
+#     assert data["proteins"][i]["Hits"][1]["Score"] == 0.9999616742134094
 
 #
 # @pytest.mark.parametrize(payload=req

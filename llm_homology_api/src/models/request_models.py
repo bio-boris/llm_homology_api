@@ -13,7 +13,8 @@ class ProteinSequence(BaseModel):
     )
     sequence: constr(min_length=2, max_length=settings.MAX_RESIDUE_COUNT) = Field(
         ...,
-        description=f"A protein sequence with a minimum length of 2 characters and a maximum length of " f"{settings.MAX_RESIDUE_COUNT}.",
+        description=f"A protein sequence with a minimum length of 2 characters and a maximum length of "
+        f"{settings.MAX_RESIDUE_COUNT}.",
     )
 
 
