@@ -29,16 +29,6 @@ def get_cached_tag(ss, index):
     return ss.get_sequence_tags([index])[0]
 
 
-def get_embedding_if_not_cached(ss, index):
-    # This will check the LRU cache first and fetch & cache if not present
-    return get_cached_embedding(ss, index)
-
-
-def get_tag_if_not_cached(ss, index):
-    # This will check the LRU cache first and fetch & cache if not present
-    return get_cached_tag(ss, index)
-
-
 def get_filtered_annotations(
     hit_indices: list[int],
     hit_scores: list[float],
@@ -58,14 +48,13 @@ def get_filtered_annotations(
     filtered_indices = [idx for idx, score in zip(hit_indices, hit_scores) if score >= threshold]
     filtered_scores = [score for score in hit_scores if score >= threshold]
 
-    # Retrieve only filtered sequence tags and embeddings with scores above the threshold
+    # Retrieve only filtered sequence tags and embeddings with scores above the threshold:
+
     # filtered_sequence_tags = ss.get_sequence_tags(filtered_indices)
-    # filtered_sequence_tags = get_sequence_tags_with_cache(ss, tuple(filtered_indices))
-    filtered_sequence_tags = [get_tag_if_not_cached(ss, idx) for idx in filtered_indices]
+    filtered_sequence_tags = [get_cached_tag(ss, idx) for idx in filtered_indices]
 
     # filtered_embeddings = [] if discard_embeddings else ss.get_sequence_embeddings(filtered_indices)
-    # filtered_embeddings = [] if discard_embeddings else get_sequence_embeddings_with_cache(ss, tuple(filtered_indices))
-    filtered_embeddings = [get_embedding_if_not_cached(ss, idx) for idx in filtered_indices]
+    filtered_embeddings = [get_cached_embedding(ss, idx) for idx in filtered_indices]
 
     if len(filtered_scores) != len(filtered_sequence_tags):
         raise ValueError(
