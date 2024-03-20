@@ -28,24 +28,46 @@ def process_hits(
     """
 
     pruned_hits = []
-    for scores, indices in zip(search_results.total_scores, search_results.total_indices):
+    for hit_scores, hit_indices in zip(search_results.total_scores, search_results.total_indices):
+        if len(hit_scores) != len(hit_indices):
+            raise ValueError("Length of scores and indices do not match.")
 
-        if len(scores) != len(indices):
-            raise ValueError(f"Length of scores ({len(scores)}) and indices ({len(indices)}) do not match.")
+        sequence_tags = ss.get_sequence_tags(hit_indices)
+        filtered_indices = [idx for idx, score in zip(hit_indices, hit_scores) if score >= threshold]
+        embeddings_bulk = ss.get_sequence_embeddings(filtered_indices) if not discard_embeddings else []
 
-        sequence_tags = ss.get_sequence_tags(indices)
         pruned_result = []
-        for idx, (seq_id, score) in enumerate(zip(sequence_tags, scores)):
+        for idx, (seq_id, score) in enumerate(zip(sequence_tags, hit_scores)):
             if score >= threshold:
                 embedding = []
                 if not discard_embeddings:
-                    # get_sequence_embeddings will return shape (1, EmbeddingDim).
-                    embeddings_raw = ss.get_sequence_embeddings(indices)
-                    embedding = [list(map(float, e)) for e in embeddings_raw][0]
-
+                    embedding = list(map(float, embeddings_bulk[idx]))
                 pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
+
         pruned_hits.append(pruned_result)
     return pruned_hits
+    #                 # get_sequence_embeddings will return shape (1, EmbeddingDim). If there are multiple indices, the slow axis will be num_indices, not 1.
+
+    # pruned_hits = []
+    # for scores, indices in zip(search_results.total_scores, search_results.total_indices):
+    #
+    #     if len(scores) != len(indices):
+    #         raise ValueError(f"Length of scores ({len(scores)}) and indices ({len(indices)}) do not match.")
+    #
+    #     sequence_tags = ss.get_sequence_tags(indices)
+    #     pruned_result = []
+    #     for idx, (seq_id, score) in enumerate(zip(sequence_tags, scores)):
+    #         if score >= threshold:
+    #             embedding = []
+    #             if not discard_embeddings:
+    #                 # get_sequence_embeddings will return shape (1, EmbeddingDim). If there are multiple indices, the slow axis will be num_indices, not 1.
+    #                 embeddings_raw = ss.get_sequence_embeddings(indices)
+    #                 embedding = [list(map(float, e)) for e in embeddings_raw][0]
+    #
+    #             pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
+    #     pruned_hits.append(pruned_result)
+    # return pruned_hits
+    #
 
 
 @router.post("/similarity", response_model=SimilarityResponse)
@@ -64,7 +86,7 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     query_sequences = [sequence.sequence for sequence in similarity_request.sequences]
     search_results, query_embeddings = request.app.state.ss.search(
         query_sequences, top_k=similarity_request.max_hits
-    )  # type: BatchedSearchResults, list[np.ndarray]
+    )  # type: BatchedSearchResults, np.ndarray
     pruned_hits = process_hits(
         search_results,
         similarity_request.threshold,
