@@ -97,13 +97,13 @@ def process_hits(
         if len(hit_scores) != len(hit_indices):
             raise ValueError(f"Length of scores and indices do not match. Got {len(hit_scores)} and {len(hit_indices)}")
 
-        filtered_scores, sequence_tags, embeddings = get_filtered_annotations(
+        filtered_scores, filtered_sequence_tags, filtered_embeddings = get_filtered_annotations(
             hit_indices, hit_scores, threshold, discard_embeddings, ss
         )
 
         pruned_result = []
-        for idx, (score, seq_id) in enumerate(zip(filtered_scores, sequence_tags)):
-            embedding = [] if discard_embeddings else list(map(float, embeddings[idx]))
+        for idx, (score, seq_id) in enumerate(zip(filtered_scores, filtered_sequence_tags)):
+            embedding = [] if discard_embeddings else list(map(float, filtered_embeddings[idx]))
             pruned_result.append(HitDetail(HitID=seq_id, Score=score, Embedding=embedding))
 
         pruned_hits.append(pruned_result)
