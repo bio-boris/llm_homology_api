@@ -1,5 +1,6 @@
 # # test similarity route
 # # test fastapi route
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import APIRouter
@@ -9,7 +10,7 @@ from config import get_settings
 from factory import (
     create_app,
 )  # Adjust the import path according to your project structure
-from routes.similarity import router as similarity_router
+from routes.similarity import router as similarity_router, get_filtered_annotations
 from routes.status import router as status_router
 
 settings = get_settings()
@@ -46,7 +47,7 @@ def test_routers():
     ],
 )
 def test_calculate_similarity_w_duplicates(
-    discard_embeddings, threshold, max_hits, expected_total_hits, expected_embedding_length
+        discard_embeddings, threshold, max_hits, expected_total_hits, expected_embedding_length
 ):
     request_payload = {
         "sequences": [seq1, seq1],  # Ensure ability to handle duplicate sequence ids
@@ -129,105 +130,41 @@ def test_calculate_similarity_with_2_sequences_keep_embeddings():
                 assert isinstance(e, float)
 
 
-# # Get embeddings
-# request_payload2 = request_payload.copy()
-# request_payload2["discard_embeddings"] = False
-# response = client.post("/similarity/", json=request_payload2)
-# assert response.status_code == 200
-# data = response.json()
-# assert data["proteins"][0]["Hits"][0]["Embedding"] == data["proteins"][0]["Hits"][1]["Embedding"]
-#
-# for i in range(2):
-#     assert len(data["proteins"][i]["Embedding"]) == 1280
-#     assert len(data["proteins"][i]["Hits"][0]["Embedding"]) == 1280
-#     assert len(data["proteins"][i]["Hits"][1]["Embedding"]) == 1280
-#     assert data["proteins"][i]["total_hits"] == 2
-#     assert data["proteins"][i]["QueryId"] == ">Q5HAN0"
-#     assert data["proteins"][i]["Hits"][0]["HitID"] == "Q5HAN0"
-#     assert data["proteins"][i]["Hits"][0]["Score"] == 0.9999958276748657
-#     assert data["proteins"][i]["Hits"][1]["HitID"] == "Q5AYI7"
-#     assert data["proteins"][i]["Hits"][1]["Score"] == 0.9999616742134094
+def test_get_filtered_annotations():
+    # Mock inputs
+    hit_indices = [1, 2, 3]
+    hit_scores = [0.9, 0.95, 0.85]
+    threshold = 0.9
 
-#
-# @pytest.mark.parametrize(payload=req
-# def test_calculate_similarity_without():
-#     request_payload = {
-#         "sequences": [
-#             {
-#                 "id": ">Q5HAN0",
-#                 "sequence": "MCTSIRHDWQLPEVLELFNLPFNDLILNAHLIHRKFFNSNEIQIAGLLNIKTGGCPENCKYCSQSAHYKTQLKKEDLLNIETIKEAIKKAKVNGIDRFCFAAAWRQIRDRDIEYICNIISLIKSENLESCASLGMVTLEQAKKLKTAGLDFYNHNIDTSRDFYYNVTTTRSYDDRLSSLNNISEAEINICSGGILGLGESIEDRAKMLLTLANLKKHPKSVPINRLVPIKGTPFENNPKISNIDFIRTIAVARILMPESYVRLAAGRESMSHEMQALCLFAGANSLFYGEKLLTTPNADCNDDKNLLSKLGVKTKQAVFFDS",
-#             },
-#             {
-#                 "id": ">Q5AYI7",
-#                 "sequence": "MSVSFTRSFPRAFIRSYGTVQSSPTAASFASRIPPALQEAVAATAPRTNWTRDEVQQIYETPLNQLTYAAAAVHRRFHDPSAIQMCTLMNIKTGGCSEDCSYCAQSSRYSTGLKATKMSPVDDVLEKARIAKANGSTRFCMGAAWRDMRGRKTSLKNVKQMVSGVREMGMEVCVTLGMIDADQAKELKDAGLTAYNHNLDTSREFYPTIITTRSYDERLKTLSHVRDAGINVCSGGILGLGEADSDRIGLIHTVSSLPSHPESFPVNALVPIKGTPLGDRKMISFDKLLRTVATARIVLPATIVRLAAGRISLTEEQQVACFMAGANAVFTGEKMLTTDCNGWDEDRAMFDRWGFYPMRSFEKETNAATPQQHVDSVAHESEKNPAAPAAEAL"
-#             }
-#         ],
-#         "threshold": 0.8,
-#         "max_hits": 2,
-#         "discard_embeddings": True,
-#     }
-#     response = client.post("/similarity/", json=request_payload)
-#     assert response.status_code == 200
-#     data = response.json()
-#     assert data == {
-#         "proteins": [
-#             {
-#                 "Embedding": [],
-#                 "Hits": [
-#                     {"Embedding": [], "HitID": "Q5HAN0", "Score": 0.9999954700469971},
-#                     {"Embedding": [], "HitID": "Q5FFY2", "Score": 0.9999621510505676},
-#                 ],
-#                 "QueryId": ">Q5HAN0",
-#                 "total_hits": 2,
-#             }
-#         ]
-#     }
-#
-#     # Get embeddings
-#     request_payload2 = copy.copy(request_payload)
-#     # request_payload2["discard_embeddings"] = False
-#     response = client.post("/similarity/", json=request_payload2)
-#     assert response.status_code == 200
-#     data = response.json()
-#     assert data["proteins"][0]["Hits"][0]["Embedding"] == data["proteins"][1]["Hits"][0]["Embedding"]
-#
-#     for i in range(2):
-#         assert len(data["proteins"][i]["Embedding"]) == 1280
-#         assert len(data["proteins"][i]["Hits"][0]["Embedding"]) == 1280
-#         assert len(data["proteins"][i]["Hits"][1]["Embedding"]) == 1280
-#         assert data["proteins"][i]["total_hits"] == 2
-#         assert data["proteins"][i]["QueryId"] == ">Q5HAN0"
-#         assert data["proteins"][i]["Hits"][0]["HitID"] == "Q5HAN0"
-#         assert data["proteins"][i]["Hits"][0]["Score"] == 0.9999958276748657
-#         assert data["proteins"][i]["Hits"][1]["HitID"] == "Q5FFY2"
-#         assert data["proteins"][i]["Hits"][1]["Score"] == 0.9999616742134094
-#
+    # Expected outputs for both scenarios
+    expected_filtered_scores = [0.9, 0.95]  # Only scores >= threshold
+    expected_filtered_tags = ["Tag1", "Tag2"]  # Corresponding tags for hit indices [1, 2]
+
+    # Mock the SimilaritySearch instance's methods
+    mock_ss = MagicMock()
+    mock_ss.get_sequence_tags.side_effect = lambda indices: ["Tag0", "Tag1", "Tag2", "Tag3"][min(indices):max(indices) + 1]
+    mock_ss.get_sequence_embeddings.side_effect = lambda indices: [[0.0, 0.1], [0.1, 0.2], [0.3, 0.4], [0.5, 0.6]][min(indices):max(indices) + 1]
+
+    # Test case when discard_embeddings is False
+    discard_embeddings = False
+    filtered_scores, filtered_tags, filtered_embeddings = get_filtered_annotations(
+        hit_indices, hit_scores, threshold, discard_embeddings, mock_ss)
+
+    # Assertions when embeddings are not discarded
+    assert filtered_scores == expected_filtered_scores
+    assert filtered_tags == expected_filtered_tags
+
+    # Test case when discard_embeddings is True
+    discard_embeddings = True
+    _, _, filtered_embeddings_discard = get_filtered_annotations(
+        hit_indices, hit_scores, threshold, discard_embeddings, mock_ss)
+
+    # Assertions when embeddings are discarded
+    assert filtered_embeddings_discard == [], "Embeddings were not discarded as expected"
 
 
-#
-# def test_calculate_similarity():
-#     # Sample request payload
-#     request_payload = {
-#         "sequences": [
-#             {"id": "Protein1", "sequence": "MKT..."},
-#             {"id": "Protein2", "sequence": "AGT..."},
-#         ],
-#         "threshold": 0.5,
-#     }
-#
-#     # Make a POST request to the endpoint
-#     response = client.post("/similarity/", json=request_payload)
-#
-#     # Check if the status code is 200
-#     assert response.status_code == 200
-#
-#     # Optionally, check the structure and data of the response
-#     data = response.json()
-#     assert "homologous_sequences" in data
-#     assert isinstance(data["homologous_sequences"], dict)
-#     # Further checks can be added based on the expected logic and output
-#
-#
+
+
 # def test_similarity_request_constraints():
 #     # Test exceeding the maximum number of sequences per request
 #     request_payload = {
