@@ -8,6 +8,7 @@ from clients.CachedAuthClient import CachedAuthClient
 from config.config import LLMHomologyApiSettings
 from routes.similarity import router as similarity_router
 from routes.status import router as whoami_router
+from routes.cache import router as cache_router
 from ss_factory import setup_similarity_search
 
 
@@ -43,6 +44,7 @@ def create_app(
     app.add_middleware(GZipMiddleware)
     app.include_router(whoami_router, tags=["whoami"])
     app.include_router(similarity_router, tags=["similarity"])
+    app.include_router(cache_router, tags=["cache"])
 
     # app.include_router(ROUTER_DANGER)
 
