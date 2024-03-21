@@ -29,8 +29,15 @@ if __name__ == "__main__":
     base_dir = os.path.dirname(reload_dir)
 
     # Create a Uvicorn configuration object with the desired settings
-    config = Config("llm_homology_api.src.factory:create_app", host="0.0.0.0", port=5001, reload=True, factory=True, log_level="debug",
-                    reload_dirs=[base_dir])
+    config = Config(
+        "llm_homology_api.src.factory:create_app",
+        host="0.0.0.0",
+        port=5001,
+        reload=True,
+        factory=True,
+        log_level="debug",
+        reload_dirs=[base_dir],
+    )
 
     # Run Uvicorn with the custom configuration
     server = uvicorn.Server(config)

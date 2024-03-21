@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from routes.similarity import get_cached_embedding, get_cached_tag
+
 router = APIRouter()
 
 

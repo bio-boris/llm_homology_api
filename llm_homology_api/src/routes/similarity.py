@@ -29,6 +29,13 @@ def get_cached_tag(ss, index):
     return ss.get_sequence_tags([index])[0]
 
 
+"""
+Optimization: Depending on the size of hit_indices and hit_scores, and how often this function is called, you might be iterating multiple times over these lists (once for filtering scores and once for indices). You could consider combining these operations into a single loop to optimize performance, especially if the lists are large.
+
+Error Handling: Consider what should happen if hit_indices and hit_scores have different lengths. This could indicate a mismatch in data alignment and might warrant an additional validation check at the start of the function.
+"""
+
+
 def get_filtered_annotations(
     hit_indices: list[int],
     hit_scores: list[float],
@@ -43,6 +50,7 @@ def get_filtered_annotations(
     @param threshold: Similarity threshold for pruning the search results.
     @param discard_embeddings: Determine whether to discard the embeddings of the queries and hits.
     @param ss: SimilaritySearch object used for searching.
+
     """
     # Keep hits with scores above the threshold
     filtered_indices = [idx for idx, score in zip(hit_indices, hit_scores) if score >= threshold]

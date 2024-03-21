@@ -13,7 +13,6 @@ from routes.cache import router as cache_router
 from ss_factory import setup_similarity_search
 
 
-
 def log_request_body_middleware(app: FastAPI):
     @app.middleware("http")
     async def log_request_body(request: Request, call_next):
@@ -21,13 +20,15 @@ def log_request_body_middleware(app: FastAPI):
         headers = request.headers
         print(f"Received request with headers: {headers}")
         try:
-            body_decoded = body.decode('utf-8')
+            body_decoded = body.decode("utf-8")
             json_body = json.loads(body_decoded)
             print(f"Received request with JSON payload: {json_body}")
         except json.JSONDecodeError:
             print(f"Received request with non-JSON payload: {body_decoded}")
         return await call_next(request)
+
     return app
+
 
 def create_app(
     cached_auth_client=None,

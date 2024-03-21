@@ -37,7 +37,7 @@ def test_routers():
     assert status_router.url_path_for("whoami") == "/whoami"
 
 
-@pytest.mark.skip(reason="Not yet implemented")
+# @pytest.mark.skip(reason="Not yet implemented")
 @pytest.mark.parametrize(
     "discard_embeddings,threshold,max_hits,expected_total_hits,expected_embedding_length",
     [
@@ -47,7 +47,7 @@ def test_routers():
     ],
 )
 def test_calculate_similarity_w_duplicates(
-        discard_embeddings, threshold, max_hits, expected_total_hits, expected_embedding_length
+    discard_embeddings, threshold, max_hits, expected_total_hits, expected_embedding_length
 ):
     request_payload = {
         "sequences": [seq1, seq1],  # Ensure ability to handle duplicate sequence ids
@@ -142,13 +142,18 @@ def test_get_filtered_annotations():
 
     # Mock the SimilaritySearch instance's methods
     mock_ss = MagicMock()
-    mock_ss.get_sequence_tags.side_effect = lambda indices: ["Tag0", "Tag1", "Tag2", "Tag3"][min(indices):max(indices) + 1]
-    mock_ss.get_sequence_embeddings.side_effect = lambda indices: [[0.0, 0.1], [0.1, 0.2], [0.3, 0.4], [0.5, 0.6]][min(indices):max(indices) + 1]
+    mock_ss.get_sequence_tags.side_effect = lambda indices: ["Tag0", "Tag1", "Tag2", "Tag3"][
+        min(indices) : max(indices) + 1
+    ]
+    mock_ss.get_sequence_embeddings.side_effect = lambda indices: [[0.0, 0.1], [0.1, 0.2], [0.3, 0.4], [0.5, 0.6]][
+        min(indices) : max(indices) + 1
+    ]
 
     # Test case when discard_embeddings is False
     discard_embeddings = False
     filtered_scores, filtered_tags, filtered_embeddings = get_filtered_annotations(
-        hit_indices, hit_scores, threshold, discard_embeddings, mock_ss)
+        hit_indices, hit_scores, threshold, discard_embeddings, mock_ss
+    )
 
     # Assertions when embeddings are not discarded
     assert filtered_scores == expected_filtered_scores
@@ -157,12 +162,11 @@ def test_get_filtered_annotations():
     # Test case when discard_embeddings is True
     discard_embeddings = True
     _, _, filtered_embeddings_discard = get_filtered_annotations(
-        hit_indices, hit_scores, threshold, discard_embeddings, mock_ss)
+        hit_indices, hit_scores, threshold, discard_embeddings, mock_ss
+    )
 
     # Assertions when embeddings are discarded
     assert filtered_embeddings_discard == [], "Embeddings were not discarded as expected"
-
-
 
 
 # def test_similarity_request_constraints():
