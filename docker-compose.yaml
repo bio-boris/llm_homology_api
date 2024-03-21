@@ -16,9 +16,9 @@
       entrypoint: poetry run uvicorn --host 0.0.0.0 --port 5000 --factory llm_homology_api.src.factory:create_app --reload
 
       volumes:
-        - /scratch/sprot/sprot_esm_650m_faiss:/models/sprot_esm_650m_faiss
-        - /scratch/sprot/sprot_esm_650m_faiss.index:/models/sprot_esm_650m_faiss.index
-        - ./llm_homology_api:/app/llm_homology_api:ro
+        - /scratch/sprot/sprot_esm_650m_faiss:/scratch/sprot/sprot_esm_650m_faiss
+        - /scratch/sprot/sprot_esm_650m_faiss.index:/scratch/sprot/sprot_esm_650m_faiss.index
+#        - ./llm_homology_api:/app/llm_homology_api:ro
 
 #      develop:
 #        watch:
