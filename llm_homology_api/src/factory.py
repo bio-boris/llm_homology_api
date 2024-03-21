@@ -1,5 +1,6 @@
+import json
 import os
-
+from fastapi import Request
 from cacheout import LRUCache
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
@@ -11,6 +12,22 @@ from routes.status import router as whoami_router
 from routes.cache import router as cache_router
 from ss_factory import setup_similarity_search
 
+
+
+def log_request_body_middleware(app: FastAPI):
+    @app.middleware("http")
+    async def log_request_body(request: Request, call_next):
+        body = await request.body()
+        headers = request.headers
+        print(f"Received request with headers: {headers}")
+        try:
+            body_decoded = body.decode('utf-8')
+            json_body = json.loads(body_decoded)
+            print(f"Received request with JSON payload: {json_body}")
+        except json.JSONDecodeError:
+            print(f"Received request with non-JSON payload: {body_decoded}")
+        return await call_next(request)
+    return app
 
 def create_app(
     cached_auth_client=None,
@@ -41,10 +58,12 @@ def create_app(
         #     "5XX": {"model": models_errors.ServerError}
         # }
     )
-    app.add_middleware(GZipMiddleware)
+    # app.add_middleware(GZipMiddleware)
     app.include_router(whoami_router, tags=["whoami"])
     app.include_router(similarity_router, tags=["similarity"])
-    app.include_router(cache_router, tags=["cache"])
+    # app.include_router(cache_router, tags=["cache"])
+
+    # app = log_request_body_middleware(app)
 
     # app.include_router(ROUTER_DANGER)
 

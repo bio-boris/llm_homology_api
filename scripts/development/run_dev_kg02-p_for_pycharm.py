@@ -11,6 +11,7 @@ if __name__ == "__main__":
     if not os.path.isfile(dotenv_file_full_path):
         raise FileNotFoundError(f"File {dotenv_file_full_path} not found")
     load_dotenv(dotenv_file_full_path) or print(f"Error loading {dotenv_file_full_path}")
+    print("Loaded .env file from ", dotenv_file_full_path)
 
     # Specify the directory to watch for changes, one level up from the script directory
     reload_dir = os.path.dirname(script_dir)
