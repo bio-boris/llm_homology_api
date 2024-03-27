@@ -7,8 +7,11 @@ from protein_search.search import SimilaritySearch
 def setup_embeddings(
     model_name="esm2",
     pretrained_model_name_or_path="facebook/esm2_t33_650M_UR50D",
-    compile_model=True,
+    compile_model=None,
 ):
+    if compile_model is None:
+        raise ValueError("compile_model must be set to True or False")
+
     """
     Set up the embedder to use for similarity search
     This will get downloaded
@@ -40,7 +43,7 @@ def setup_embeddings(
     )
 
 
-def setup_similarity_search(ss_dataset_dir: str, embedder=None, compile_model=False):
+def setup_similarity_search(ss_dataset_dir: str, embedder=None, compile_model=True):
     if embedder is None:
         embedder = setup_embeddings(compile_model=compile_model)
     return SimilaritySearch(dataset_dir=Path(ss_dataset_dir), embedder=embedder)
