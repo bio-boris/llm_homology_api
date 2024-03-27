@@ -1,3 +1,4 @@
+import re
 from typing import Union
 
 import GPUtil
@@ -6,41 +7,45 @@ import torch
 from fastapi import APIRouter
 from fastapi import HTTPException, Query
 from fastapi.responses import JSONResponse
-import re
+
 from routes.similarity import get_cached_embedding, get_cached_tag
 
 router = APIRouter()
 
-# Regular expressions to match different log line formats
+# Regular expression to match detailed process information related to similarity requests
 process_info_regex = re.compile(
     r"INFO:root:Processed similarity request: (?P<sequences>\d+) sequences, Total sequence length: (?P<length>\d+), Response size \(total hits\): (?P<hits>\d+), Execution time: (?P<execution_time>[\d\.]+) seconds"
 )
-http_request_regex = re.compile(
-    r"INFO: +(?P<ip>[\d\.]+:\d+) - \"(?P<method>\w+) (?P<endpoint>.+) HTTP/1.\d\" (?P<status_code>\d+) (?P<status_message>\w+)"
-)
-progress_regex = re.compile(
-    r"(?P<progress>\d+)%\|[\w\s]+\| (?P<completed>\d+)/(?P<total>\d+) \[(?P<elapsed_time>.+)\]"
-)
 
+async def parse_log_line(line: str) -> dict | None:  # Using 'dict | None' for the return type
+    if "Processed similarity request" in line:
+        if process_info_match := process_info_regex.match(line):
+            return {"type": "similarity_process_info", **process_info_match.groupdict()}
+    # Function implicitly returns None if no conditions are met
 
-async def parse_log_line(line: str) -> Union[dict[str, str], None]:
-    if process_info_match := process_info_regex.match(line):
-        return {"type": "process_info", **process_info_match.groupdict()}
-    elif http_request_match := http_request_regex.match(line):
-        return {"type": "http_request", **http_request_match.groupdict()}
-    elif progress_match := progress_regex.match(line):
-        return {"type": "progress", **progress_match.groupdict()}
-    return None  # Return None for lines that do not match any pattern
-
-
-async def get_last_n_lines(filename: str, n: int) -> list[dict[str, str]]:
+async def get_last_n_lines(filename: str, n: int) -> list[dict]:
+    parsed_lines = []
     async with aiofiles.open(filename, 'r', encoding='utf-8') as file:
-        lines = await file.readlines()
+        async for line in file:
+            parsed_line = await parse_log_line(line)  # Awaiting the coroutine
+            if parsed_line:  # Only add the line if parse_log_line returns a dict
+                parsed_lines.append(parsed_line)
+                if len(parsed_lines) > n:  # Keep the buffer size to n
+                    parsed_lines.pop(0)
 
-    # Parse lines and filter out None values for lines that didn't match any pattern
-    parsed_lines = [await parse_log_line(line) for line in lines]
-    parsed_lines = [line for line in parsed_lines if line is not None]
-    return parsed_lines[-n:] if len(parsed_lines) >= n else parsed_lines
+    return parsed_lines
+
+@app.get("/logs/similarity")
+async def read_similarity_logs(lines: int = Query(100, alias="lines", description="The number of lines to retrieve from the log file related to similarity requests.")):
+    log_entries = await get_last_n_lines('nohup.out', lines)
+    return {"logs": log_entries}
+
+
+@app.get("/logs/similarity")
+async def read_similarity_logs(
+        lines: int = Query(100, alias="lines", description="The number of lines to retrieve from the log file related to similarity requests.")):
+    log_entries = await get_last_n_lines('nohup.out', lines)
+    return {"logs": log_entries}
 
 
 @router.get("/logs")
