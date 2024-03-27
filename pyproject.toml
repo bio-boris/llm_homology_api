@@ -15,6 +15,7 @@ cacheout = "^0.16.0"
 faiss-gpu = { version = "^1.7.2", platform = "linux" }
 protein-search = { git = "https://github.com/braceal/protein-search.git", rev = "develop" }
 gputil = "^1.4.0"
+aiofiles = "^23.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
