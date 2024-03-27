@@ -4,3 +4,6 @@
 #export PYTHONPATH=.:llm_homology_api:llm_homology_api/src
 #. ./scripts/deployment/deploy_kg02-p.env
 #exec poetry run uvicorn --host 0.0.0.0 --port 5001 --factory llm_homology_api.src.factory:create_app --reload
+
+
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True PYTHONPATH=.:llm_homology_api:llm_homology_api/src nohup poetry run ./scripts/development/run_dev_on_kg02.py &
