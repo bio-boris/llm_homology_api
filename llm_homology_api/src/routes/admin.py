@@ -10,39 +10,49 @@ from fastapi.responses import JSONResponse
 from routes.similarity import get_cached_embedding, get_cached_tag
 
 router = APIRouter()
-# Regular expression to match detailed process information related to similarity requests
+
+# Regular expression for detailed process information related to similarity requests
 process_info_regex = re.compile(
     r"INFO:root:Processed similarity request: (?P<sequences>\d+) sequences, Total sequence length: (?P<length>\d+), Response size \(total hits\): (?P<hits>\d+), Execution time: (?P<execution_time>[\d\.]+) seconds"
 )
 
-# Regular expression to match HTTP POST requests specifically to the /similarity endpoint
+# Regular expression for HTTP POST requests specifically to the /similarity endpoint
 similarity_request_regex = re.compile(
     r"INFO: +(?P<ip>[\d\.]+:\d+) - \"POST (?P<endpoint>/similarity) HTTP/1.\d\" (?P<status_code>\d+) (?P<status_message>\w+)"
 )
 
 
-async def parse_log_line(line: str) -> dict | None:
-    # Check for process info related to similarity requests
-    if process_info_match := process_info_regex.match(line):
-        return {"type": "similarity_process_info", **process_info_match.groupdict()}
-    # Check for HTTP POST requests to the /similarity endpoint
-    elif similarity_request_match := similarity_request_regex.match(line):
-        return {"type": "similarity_http_request", **similarity_request_match.groupdict()}
-    # Skip lines that don't match the above criteria
-    return None
+async def parse_and_combine_log_lines(lines: list[str]) -> list[dict]:
+    combined_entries = []
+    temp_entry = None
+
+    for line in lines:
+        # Check for process info related to similarity requests
+        if process_info_match := process_info_regex.match(line):
+            temp_entry = {"type": "similarity_process_info", **process_info_match.groupdict()}
+
+        # Check for HTTP POST requests to the /similarity endpoint
+        elif similarity_request_match := similarity_request_regex.match(line) and temp_entry:
+            # Combine with the stored process info entry
+            http_request_info = {
+                "http_request": {"ip": similarity_request_match.group("ip"), "status_code": similarity_request_match.group("status_code"),
+                                 "status_message": similarity_request_match.group("status_message")}}
+            combined_entry = {**temp_entry, **http_request_info}
+            combined_entries.append(combined_entry)
+            temp_entry = None  # Reset the temp entry for the next pair
+
+    return combined_entries
 
 
 async def get_last_n_lines(filename: str, n: int) -> list[dict]:
-    parsed_lines = []
+    lines_buffer = []
     async with aiofiles.open(filename, 'r', encoding='utf-8') as file:
         async for line in file:
-            parsed_line = await parse_log_line(line)
-            if parsed_line:  # Only add the line if parse_log_line returns a dict
-                parsed_lines.append(parsed_line)
-                if len(parsed_lines) > n:  # Keep the buffer size to n
-                    parsed_lines.pop(0)
+            lines_buffer.append(line)
+            if len(lines_buffer) > n:  # Keep only the last n lines in the buffer
+                lines_buffer.pop(0)
 
-    return parsed_lines
+    return await parse_and_combine_log_lines(lines_buffer)
 
 
 @router.get("/logs/similarity")
