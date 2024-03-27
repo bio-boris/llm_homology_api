@@ -32,14 +32,19 @@ async def parse_and_combine_log_lines(lines: list[str]) -> list[dict]:
             temp_entry = {"type": "similarity_process_info", **process_info_match.groupdict()}
 
         # Check for HTTP POST requests to the /similarity endpoint
-        elif similarity_request_match := similarity_request_regex.match(line) and temp_entry:
-            # Combine with the stored process info entry
-            http_request_info = {
-                "http_request": {"ip": similarity_request_match.group("ip"), "status_code": similarity_request_match.group("status_code"),
-                                 "status_message": similarity_request_match.group("status_message")}}
-            combined_entry = {**temp_entry, **http_request_info}
-            combined_entries.append(combined_entry)
-            temp_entry = None  # Reset the temp entry for the next pair
+        elif similarity_request_match := similarity_request_regex.match(line):
+            if temp_entry:
+                # Combine with the stored process info entry
+                http_request_info = {
+                    "http_request": {
+                        "ip": similarity_request_match.group("ip"),
+                        "status_code": similarity_request_match.group("status_code"),
+                        "status_message": similarity_request_match.group("status_message")
+                    }
+                }
+                combined_entry = {**temp_entry, **http_request_info}
+                combined_entries.append(combined_entry)
+                temp_entry = None  # Reset the temp entry for the next pair
 
     return combined_entries
 
