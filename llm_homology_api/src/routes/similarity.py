@@ -1,5 +1,5 @@
 import logging
-
+import time
 import protein_search.search
 from fastapi import APIRouter, Request
 from protein_search.search import BatchedSearchResults
@@ -60,7 +60,7 @@ def get_filtered_annotations(
 
     # Retrieve only filtered sequence tags and embeddings with scores above the threshold:
 
-    
+
     filtered_sequence_tags = ss.get_sequence_tags(filtered_indices)
     # filtered_sequence_tags = [get_cached_tag(ss, idx) for idx in filtered_indices]
 
@@ -134,6 +134,12 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     - threshold: Similarity threshold (0.0-1.0).
     Please ensure that your request does not exceed these constraints.
     """
+    start_time = time.time()  # Capture the start time
+    # Gather initial data about the request
+    num_sequences = len(similarity_request.sequences)
+    total_sequence_length = sum(len(sequence.sequence) for sequence in similarity_request.sequences)
+
+
     query_sequences = [sequence.sequence for sequence in similarity_request.sequences]
     search_results, query_embeddings = request.app.state.ss.search(
         query_sequences, top_k=similarity_request.max_hits
@@ -157,4 +163,19 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
                 Hits=pruned_hits[i],
             )
         )
+
+    # Calculate the size of the response
+    response_size = sum(len(protein.Hits) for protein in proteins)
+
+    # Calculate the elapsed time
+    elapsed_time = time.time() - start_time
+
+    # Log all information in a single, formatted statement
+    logging.info(
+        f"Processed similarity request: {num_sequences} sequences, "
+        f"Total sequence length: {total_sequence_length}, "
+        f"Response size (total hits): {response_size}, "
+        f"Execution time: {elapsed_time:.2f} seconds"
+    )
+
     return SimilarityResponse(proteins=proteins)
