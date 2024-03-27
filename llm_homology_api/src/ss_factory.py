@@ -43,7 +43,7 @@ def setup_embeddings(
     )
 
 
-def setup_similarity_search(ss_dataset_dir: str, embedder=None, compile_model=True):
+def setup_similarity_search(ss_dataset_dir: str, embedder=None, compile_model=False):
     if embedder is None:
         embedder = setup_embeddings(compile_model=compile_model)
     return SimilaritySearch(dataset_dir=Path(ss_dataset_dir), embedder=embedder)
