@@ -23,7 +23,7 @@ progress_regex = re.compile(
 )
 
 
-async def parse_log_line(line: str) -> Union[Dict[str, str], None]:
+async def parse_log_line(line: str) -> Union[dict[str, str], None]:
     if process_info_match := process_info_regex.match(line):
         return {"type": "process_info", **process_info_match.groupdict()}
     elif http_request_match := http_request_regex.match(line):
