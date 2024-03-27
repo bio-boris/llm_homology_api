@@ -28,14 +28,15 @@ class QueryProtein(BaseModel):
 
 
 class SimilarityResponse(BaseModel):
-    proteins: List[QueryProtein] = Field(
-        ...,
-        description="A list of query proteins, each containing optional embedding vectors for the query protein, the total number of hits, and their homologous sequences information. The Hits list for each query protein could be empty.",
-    )
     summary: Dict[str, float] = Field(
         ...,
         description="Summary information including the number of sequences, total sequence length, response size, and execution time.",
     )
+    proteins: List[QueryProtein] = Field(
+        ...,
+        description="A list of query proteins, each containing optional embedding vectors for the query protein, the total number of hits, and their homologous sequences information. The Hits list for each query protein could be empty.",
+    )
+
 
     class Config:
         schema_extra = {
