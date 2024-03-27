@@ -39,11 +39,11 @@ Error Handling: Consider what should happen if hit_indices and hit_scores have d
 
 
 def get_filtered_annotations(
-        hit_indices: list[int],
-        hit_scores: list[float],
-        threshold: float,
-        discard_embeddings: bool,
-        ss: protein_search.search.SimilaritySearch,
+    hit_indices: list[int],
+    hit_scores: list[float],
+    threshold: float,
+    discard_embeddings: bool,
+    ss: protein_search.search.SimilaritySearch,
 ) -> tuple[list[float], list[str], list[list[float]]]:
     """
     Get the filtered sequence tags and embeddings based on the similarity threshold and discard_embeddings flag.
@@ -59,7 +59,6 @@ def get_filtered_annotations(
     filtered_scores = [score for score in hit_scores if score >= threshold]
 
     # Retrieve only filtered sequence tags and embeddings with scores above the threshold:
-
 
     filtered_sequence_tags = ss.get_sequence_tags(filtered_indices)
     # filtered_sequence_tags = [get_cached_tag(ss, idx) for idx in filtered_indices]
@@ -87,10 +86,10 @@ def get_filtered_annotations(
 
 
 def process_hits(
-        search_results: protein_search.search.BatchedSearchResults,
-        threshold: float,
-        discard_embeddings: bool,
-        ss: protein_search.search.SimilaritySearch,
+    search_results: protein_search.search.BatchedSearchResults,
+    threshold: float,
+    discard_embeddings: bool,
+    ss: protein_search.search.SimilaritySearch,
 ) -> list[list[HitDetail]]:
     """
     Process the search results to prune the hits based on the similarity threshold and discard_embeddings flag.
@@ -139,7 +138,6 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     num_sequences = len(similarity_request.sequences)
     total_sequence_length = sum(len(sequence.sequence) for sequence in similarity_request.sequences)
 
-
     query_sequences = [sequence.sequence for sequence in similarity_request.sequences]
     search_results, query_embeddings = request.app.state.ss.search(
         query_sequences, top_k=similarity_request.max_hits
@@ -170,7 +168,15 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
     # Calculate the elapsed time
     elapsed_time = time.time() - start_time
 
-    # Log all information in a single, formatted statement
+    # Prepare the summary dictionary
+    summary_info = {
+        "num_sequences": num_sequences,
+        "total_sequence_length": total_sequence_length,
+        "response_size": response_size,
+        "execution_time": elapsed_time,
+    }
+
+    # Log the processing information
     logging.info(
         f"Processed similarity request: {num_sequences} sequences, "
         f"Total sequence length: {total_sequence_length}, "
@@ -178,4 +184,5 @@ async def calculate_similarity(request: Request, similarity_request: SimilarityR
         f"Execution time: {elapsed_time:.2f} seconds"
     )
 
-    return SimilarityResponse(proteins=proteins)
+    # Include the summary info and proteins in the response
+    return SimilarityResponse(proteins=proteins, summary=summary_info)

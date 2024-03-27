@@ -17,6 +17,7 @@ process_info_regex = re.compile(
     r"INFO:root:Processed similarity request: (?P<sequences>\d+) sequences, Total sequence length: (?P<length>\d+), Response size \(total hits\): (?P<hits>\d+), Execution time: (?P<execution_time>[\d\.]+) seconds"
 )
 
+
 async def parse_log_line(line: str) -> dict | None:
     # Check for process info related to similarity requests
     if process_info_match := process_info_regex.match(line):
@@ -24,9 +25,10 @@ async def parse_log_line(line: str) -> dict | None:
     # Skip lines that don't match the above criteria
     return None
 
+
 async def get_last_n_lines(filename: str, n: int) -> list[dict]:
     parsed_lines = []
-    async with aiofiles.open(filename, 'r', encoding='utf-8') as file:
+    async with aiofiles.open(filename, "r", encoding="utf-8") as file:
         async for line in file:
             parsed_line = await parse_log_line(line)
             if parsed_line:  # Only add the line if parse_log_line returns a dict
@@ -36,16 +38,24 @@ async def get_last_n_lines(filename: str, n: int) -> list[dict]:
 
     return parsed_lines
 
+
 @router.get("/logs/similarity")
 async def read_similarity_logs(
-        lines: int = Query(100, alias="lines", description="The number of lines to retrieve from the log file related to similarity requests.")):
-    log_entries = await get_last_n_lines('nohup.out', lines)
+    lines: int = Query(
+        100,
+        alias="lines",
+        description="The number of lines to retrieve from the log file related to similarity requests.",
+    )
+):
+    log_entries = await get_last_n_lines("nohup.out", lines)
     return {"logs": log_entries}
 
 
 @router.get("/logs")
-async def read_logs(lines: int = Query(100, alias="lines", description="The number of lines to retrieve from the log file.")):
-    log_entries = await get_last_n_lines('nohup.out', lines)
+async def read_logs(
+    lines: int = Query(100, alias="lines", description="The number of lines to retrieve from the log file.")
+):
+    log_entries = await get_last_n_lines("nohup.out", lines)
     return {"logs": log_entries}
 
 
@@ -78,7 +88,7 @@ async def gpu_stats(cleanup: bool = Query(default=False, description="Flag to tr
                 "temperature": gpu.temperature,
                 "free_memory": gpu.memoryFree,
                 "used_memory": gpu.memoryUsed,
-                "total_memory": gpu.memoryTotal
+                "total_memory": gpu.memoryTotal,
             }
             gpu_info.append(info)
 
@@ -89,10 +99,7 @@ async def gpu_stats(cleanup: bool = Query(default=False, description="Flag to tr
             cleanup_message = "PyTorch GPU cache cleaned."
 
         # Combining both GPU stats and cleanup message in the response
-        response = {
-            "gpu_stats": gpu_info,
-            "cleanup_message": cleanup_message
-        }
+        response = {"gpu_stats": gpu_info, "cleanup_message": cleanup_message}
 
         return JSONResponse(content=response)
     except Exception as e:
