@@ -1814,8 +1814,8 @@ docs = ["black", "mike", "mkdocs-gen-files", "mkdocs-literate-nav", "mkdocs-mate
 [package.source]
 type = "git"
 url = "https://github.com/braceal/protein-search.git"
-reference = "main"
-resolved_reference = "8a14244d3a64de3d50b714c23fdd28b9bb69ce67"
+reference = "develop"
+resolved_reference = "4a2f9ec7253bd3aa58c1eafae0aa98d3d4c194b5"
 
 [[package]]
 name = "psutil"
@@ -3654,4 +3654,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "ec80a2f4563db7fd488e9b36889f69f1e55ccf20b626a90361d08fd8c9d22f5e"
+content-hash = "3806c4b6a65a4df0376914591d1439176356e0167d9be1457ac7fedc2be2ede6"

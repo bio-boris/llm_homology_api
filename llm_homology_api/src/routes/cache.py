@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/cache_status")
-def cache_status():
+async def cache_status():
     """Endpoint to get status of caches."""
     cache_info = {}
     for cache_func in [get_cached_embedding, get_cached_tag]:
