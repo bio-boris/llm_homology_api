@@ -13,7 +13,6 @@ import functools
 router = APIRouter()
 settings = get_settings()
 
-
 logging.basicConfig(level=logging.INFO)
 
 
@@ -40,11 +39,11 @@ Error Handling: Consider what should happen if hit_indices and hit_scores have d
 
 
 def get_filtered_annotations(
-    hit_indices: list[int],
-    hit_scores: list[float],
-    threshold: float,
-    discard_embeddings: bool,
-    ss: protein_search.search.SimilaritySearch,
+        hit_indices: list[int],
+        hit_scores: list[float],
+        threshold: float,
+        discard_embeddings: bool,
+        ss: protein_search.search.SimilaritySearch,
 ) -> tuple[list[float], list[str], list[list[float]]]:
     """
     Get the filtered sequence tags and embeddings based on the similarity threshold and discard_embeddings flag.
@@ -61,12 +60,12 @@ def get_filtered_annotations(
 
     # Retrieve only filtered sequence tags and embeddings with scores above the threshold:
 
+    
+    filtered_sequence_tags = ss.get_sequence_tags(filtered_indices)
+    # filtered_sequence_tags = [get_cached_tag(ss, idx) for idx in filtered_indices]
 
-    # filtered_sequence_tags = ss.get_sequence_tags(filtered_indices)
-    filtered_sequence_tags = [get_cached_tag(ss, idx) for idx in filtered_indices]
-
-    # filtered_embeddings = [] if discard_embeddings else ss.get_sequence_embeddings(filtered_indices)
-    filtered_embeddings = [] if discard_embeddings else [get_cached_embedding(ss, idx) for idx in filtered_indices]
+    filtered_embeddings = [] if discard_embeddings else ss.get_sequence_embeddings(filtered_indices)
+    # filtered_embeddings = [] if discard_embeddings else [get_cached_embedding(ss, idx) for idx in filtered_indices]
 
     if len(filtered_scores) != len(filtered_sequence_tags):
         raise ValueError(
@@ -88,10 +87,10 @@ def get_filtered_annotations(
 
 
 def process_hits(
-    search_results: protein_search.search.BatchedSearchResults,
-    threshold: float,
-    discard_embeddings: bool,
-    ss: protein_search.search.SimilaritySearch,
+        search_results: protein_search.search.BatchedSearchResults,
+        threshold: float,
+        discard_embeddings: bool,
+        ss: protein_search.search.SimilaritySearch,
 ) -> list[list[HitDetail]]:
     """
     Process the search results to prune the hits based on the similarity threshold and discard_embeddings flag.
