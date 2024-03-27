@@ -30,9 +30,12 @@ def get_cached_tag(ss, index):
 
 
 """
-Optimization: Depending on the size of hit_indices and hit_scores, and how often this function is called, you might be iterating multiple times over these lists (once for filtering scores and once for indices). You could consider combining these operations into a single loop to optimize performance, especially if the lists are large.
+Optimization: Depending on the size of hit_indices and hit_scores, and how often this function is called,
+ you might be iterating multiple times over these lists (once for filtering scores and once for indices). 
+ You could consider combining these operations into a single loop to optimize performance, especially if the lists are large.
 
-Error Handling: Consider what should happen if hit_indices and hit_scores have different lengths. This could indicate a mismatch in data alignment and might warrant an additional validation check at the start of the function.
+Error Handling: Consider what should happen if hit_indices and hit_scores have different lengths.
+ This could indicate a mismatch in data alignment and might warrant an additional validation check at the start of the function.
 """
 
 
@@ -57,6 +60,7 @@ def get_filtered_annotations(
     filtered_scores = [score for score in hit_scores if score >= threshold]
 
     # Retrieve only filtered sequence tags and embeddings with scores above the threshold:
+
 
     # filtered_sequence_tags = ss.get_sequence_tags(filtered_indices)
     filtered_sequence_tags = [get_cached_tag(ss, idx) for idx in filtered_indices]
