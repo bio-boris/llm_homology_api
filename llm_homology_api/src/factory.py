@@ -9,7 +9,7 @@ from clients.CachedAuthClient import CachedAuthClient
 from config.config import LLMHomologyApiSettings
 from routes.similarity import router as similarity_router
 from routes.status import router as whoami_router
-from routes.cache import router as cache_router
+from routes.admin import router as cache_router
 from ss_factory import setup_similarity_search
 
 
