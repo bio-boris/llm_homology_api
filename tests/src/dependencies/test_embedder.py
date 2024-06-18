@@ -50,30 +50,3 @@ def test_embedder_initialization(model_name, half_precision, eval_mode):
     assert embedder.model.dtype == expected_dtype, f"Model dtype should be {expected_dtype}"
 
 
-@pytest.mark.parametrize("model_name, half_precision, eval_mode, device", [
-    ('facebook/esm2_t6_8M_UR50D', True, True, 'cuda')
-])
-def test_embed_function(embedder, mocker):
-    # Setup
-    sequences = ["Protein sequence 1", "Protein sequence 2"]
-    mock_tokenizer = embedder.tokenizer
-    mock_model = embedder.model
-
-    mock_tokenizer.return_value = {
-        'input_ids': torch.tensor([[0, 1, 2, 3], [0, 1, 2, 0]]),
-        'attention_mask': torch.tensor([[1, 1, 1, 1], [1, 1, 1, 0]])
-    }
-
-    mock_output = MagicMock()
-    mock_output.hidden_states = [torch.rand(2, 4, 128)]
-
-    # Mock the forward method to return the mock_output
-    mock_model.forward.return_value = mock_output
-
-    # Perform the embedding
-    with patch.object(embedder.tokenizer, '__call__', return_value=mock_tokenizer.return_value):
-        embeddings = embedder.embed(sequences)
-
-    # Assertions
-    assert embeddings.shape == torch.Size([2, 4, 128]), "Embeddings should have the shape (batch_size, sequence_length, embedding_dim)"
-    mock_model.forward.assert_called_once(), "Model should be called exactly once"

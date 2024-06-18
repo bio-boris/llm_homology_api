@@ -29,9 +29,3 @@ class Esm2Embedder:
 
         return outputs.hidden_states[-1]
 
-
-# Example usage:
-embedder = Esm2Embedder()
-sequences = ["Protein sequence 1", "Protein sequence 2"]
-embeddings = embedder.embed(sequences)
-print(embeddings.shape)
