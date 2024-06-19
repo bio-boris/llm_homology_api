@@ -28,7 +28,7 @@ sys.path.insert(0, "llm_homology_api/src")
 # Run pytest
 pytest_args = [
     "--cov=llm_homology_api",  # Path to the module you want to measure coverage for
-    "--cov-report=html",       # Generate an HTML report
+    "--cov-report=xml:coverage.xml",       # Generate an HTML report
     "--cov-report=term"        # Show coverage summary in the terminal
 ]
 pytest.main(pytest_args)
