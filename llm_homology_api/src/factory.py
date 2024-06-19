@@ -1,15 +1,14 @@
 import json
-import os
-from fastapi import Request
+
 from cacheout import LRUCache
 from fastapi import FastAPI
-from fastapi.middleware.gzip import GZipMiddleware
+from fastapi import Request
 
 from clients.CachedAuthClient import CachedAuthClient
 from config.config import LLMHomologyApiSettings
+from routes.admin import router as cache_router
 from routes.similarity import router as similarity_router
 from routes.status import router as whoami_router
-from routes.admin import router as cache_router
 from ss_factory import setup_similarity_search
 
 
