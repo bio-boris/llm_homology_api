@@ -6,9 +6,11 @@ from fastapi import Request
 
 from clients.CachedAuthClient import CachedAuthClient
 from config.config import LLMHomologyApiSettings
+from dependencies.embedder import ESM2EmbedderSerial, ESM2EmbedderBatch
 from routes.admin import router as cache_router
 from routes.similarity import router as similarity_router
 from routes.status import router as whoami_router
+from routes.benchmarking import router as benchmarking_router
 from ss_factory import setup_similarity_search
 
 
@@ -62,6 +64,7 @@ def create_app(
     app.include_router(whoami_router, tags=["whoami"])
     app.include_router(similarity_router, tags=["similarity"])
     app.include_router(cache_router, tags=["cache"])
+    app.include_router(benchmarking_router, tags=["benchmarking"])
 
     # app = log_request_body_middleware(app)
 
@@ -94,4 +97,6 @@ def create_app(
     #     app.state.ss = None
     # else:
     app.state.ss = setup_similarity_search(model_dir)
+    app.state.serial_embedder = ESM2EmbedderSerial()
+    app.state.batch_embedder = ESM2EmbedderBatch()
     return app
